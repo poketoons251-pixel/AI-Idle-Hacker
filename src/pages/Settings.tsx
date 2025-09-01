@@ -169,10 +169,11 @@ const Toggle: React.FC<{
 );
 
 export const Settings: React.FC = () => {
-  const { addNotification } = useGameStore();
+  const { addNotification, player, updatePlayer } = useGameStore();
   const [settings, setSettings] = useState<GameSettings>(defaultSettings);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState(player.username);
   
   const updateSetting = (section: keyof GameSettings, key: string, value: any) => {
     setSettings(prev => ({
@@ -185,6 +186,10 @@ export const Settings: React.FC = () => {
   };
   
   const handleSave = () => {
+    // Update player username in the store
+    if (username.trim() && username !== player.username) {
+      updatePlayer({ username: username.trim() });
+    }
     // In a real app, this would save to localStorage or send to server
     addNotification('Settings saved successfully!', 'success');
   };
@@ -418,7 +423,8 @@ export const Settings: React.FC = () => {
         <SettingRow label="Username" description="Your display name in the game">
           <input
             type="text"
-            defaultValue="Anonymous_Hacker"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="cyber-input w-48"
             placeholder="Enter username"
           />
