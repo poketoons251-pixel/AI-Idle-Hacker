@@ -78,6 +78,53 @@ export interface Achievement {
   unlockedAt?: number;
 }
 
+// Quest System Interfaces
+export interface QuestObjective {
+  id: string;
+  description: string;
+  type: 'operation_complete' | 'credits_earn' | 'level_reach' | 'skill_upgrade' | 'equipment_purchase' | 'target_unlock' | 'achievement_unlock';
+  target: number;
+  current: number;
+  isCompleted: boolean;
+  isOptional: boolean;
+}
+
+export interface QuestReward {
+  type: 'credits' | 'experience' | 'reputation' | 'equipment' | 'skill_points' | 'special';
+  amount: number;
+  itemId?: string;
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+}
+
+export interface QuestPrerequisite {
+  type: 'level' | 'quest_completed' | 'achievement_unlocked' | 'skill_level';
+  value: number | string;
+}
+
+export interface QuestProgress {
+  startedAt: number;
+  lastUpdated: number;
+  completionPercentage: number;
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  type: 'story' | 'daily' | 'weekly' | 'achievement' | 'special';
+  category: 'combat' | 'progression' | 'social' | 'exploration' | 'mastery';
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  objectives: QuestObjective[];
+  rewards: QuestReward[];
+  prerequisites: QuestPrerequisite[];
+  timeLimit?: number; // in milliseconds
+  isRepeatable: boolean;
+  status: 'locked' | 'available' | 'active' | 'completed' | 'failed';
+  startedAt?: number;
+  completedAt?: number;
+  progress: QuestProgress;
+}
+
 export interface AIConfig {
   enabled: boolean;
   isActive: boolean;
@@ -145,6 +192,9 @@ interface GameState {
   currentOperation: Operation | null;
   targets: Target[];
   achievements: Achievement[];
+  quests: Quest[];
+  activeQuests: Quest[];
+  completedQuests: Quest[];
   
   // AI System
   aiConfig: AIConfig;
@@ -177,6 +227,14 @@ interface GameState {
   
   unlockTarget: (targetId: string) => void;
   unlockAchievement: (achievementId: string) => void;
+  
+  // Quest Actions
+  startQuest: (questId: string) => void;
+  completeObjective: (questId: string, objectiveId: string) => void;
+  claimReward: (questId: string) => void;
+  getActiveQuests: () => Quest[];
+  updateQuestProgress: (questId: string, objectiveId: string, progress: number) => void;
+  checkQuestCompletion: (questId: string) => void;
   
   setActiveTab: (tab: string) => void;
   addNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
@@ -332,6 +390,9 @@ export const useGameStore = create<GameState>()((set, get) => {
         currentOperation: null,
         targets: initialTargets,
         achievements: initialAchievements,
+        quests: [],
+        activeQuests: [],
+        completedQuests: [],
         aiConfig: initialAIConfig,
         aiAnalytics: initialAIAnalytics,
         aiActive: false,
@@ -486,6 +547,166 @@ export const useGameStore = create<GameState>()((set, get) => {
               : achievement
           ),
         }));
+      },
+
+      // Quest actions
+      startQuest: (questId) => {
+        const state = get();
+        const quest = state.quests.find(q => q.id === questId);
+        if (!quest || quest.status !== 'available') return;
+
+        // Check prerequisites
+        const meetsPrerequisites = quest.prerequisites.every(prereq => {
+          switch (prereq.type) {
+            case 'level':
+              return state.player.level >= (prereq.value as number);
+            case 'quest_completed':
+              return state.completedQuests.some(q => q.id === prereq.value);
+            case 'achievement_unlocked':
+              return state.achievements.some(a => a.id === prereq.value && a.unlocked);
+            case 'skill_level':
+              const [skill, level] = (prereq.value as string).split(':');
+              return state.player.skills[skill as keyof Skills] >= parseInt(level);
+            default:
+              return true;
+          }
+        });
+
+        if (!meetsPrerequisites) {
+          state.addNotification('Prerequisites not met for this quest', 'error');
+          return;
+        }
+
+        const now = Date.now();
+        const updatedQuest: Quest = {
+          ...quest,
+          status: 'active',
+          startedAt: now,
+          progress: {
+            startedAt: now,
+            lastUpdated: now,
+            completionPercentage: 0,
+          },
+        };
+
+        set((state) => ({
+          quests: state.quests.map(q => q.id === questId ? updatedQuest : q),
+          activeQuests: [...state.activeQuests, updatedQuest],
+        }));
+
+        state.addNotification(`Quest started: ${quest.title}`, 'success');
+      },
+
+      completeObjective: (questId, objectiveId) => {
+        const state = get();
+        const quest = state.activeQuests.find(q => q.id === questId);
+        if (!quest) return;
+
+        const updatedObjectives = quest.objectives.map(obj => 
+          obj.id === objectiveId ? { ...obj, isCompleted: true, current: obj.target } : obj
+        );
+
+        const updatedQuest = { ...quest, objectives: updatedObjectives };
+        state.checkQuestCompletion(questId);
+      },
+
+      claimReward: (questId) => {
+        const state = get();
+        const quest = state.completedQuests.find(q => q.id === questId);
+        if (!quest) return;
+
+        // Award rewards
+        quest.rewards.forEach(reward => {
+          switch (reward.type) {
+            case 'credits':
+              state.updatePlayer({ credits: state.player.credits + reward.amount });
+              break;
+            case 'experience':
+              state.gainExperience(reward.amount);
+              break;
+            case 'reputation':
+              state.updatePlayer({ reputation: state.player.reputation + reward.amount });
+              break;
+            case 'skill_points':
+              state.updatePlayer({ skillPoints: state.player.skillPoints + reward.amount });
+              break;
+            case 'equipment':
+              if (reward.itemId) {
+                // Add equipment logic here when equipment system is expanded
+              }
+              break;
+          }
+        });
+
+        const rewardText = quest.rewards.map(r => `+${r.amount} ${r.type}`).join(', ');
+        state.addNotification(`Quest rewards claimed: ${rewardText}`, 'success');
+      },
+
+      getActiveQuests: () => {
+        return get().activeQuests;
+      },
+
+      updateQuestProgress: (questId, objectiveId, progress) => {
+        const state = get();
+        const quest = state.activeQuests.find(q => q.id === questId);
+        if (!quest) return;
+
+        const updatedObjectives = quest.objectives.map(obj => {
+          if (obj.id === objectiveId) {
+            const newCurrent = Math.min(progress, obj.target);
+            return { ...obj, current: newCurrent, isCompleted: newCurrent >= obj.target };
+          }
+          return obj;
+        });
+
+        const completedObjectives = updatedObjectives.filter(obj => obj.isCompleted).length;
+        const totalObjectives = updatedObjectives.length;
+        const completionPercentage = (completedObjectives / totalObjectives) * 100;
+
+        const updatedQuest = {
+          ...quest,
+          objectives: updatedObjectives,
+          progress: {
+            ...quest.progress,
+            lastUpdated: Date.now(),
+            completionPercentage,
+          },
+        };
+
+        set((state) => ({
+          quests: state.quests.map(q => q.id === questId ? updatedQuest : q),
+          activeQuests: state.activeQuests.map(q => q.id === questId ? updatedQuest : q),
+        }));
+
+        // Check if quest is completed
+        if (completionPercentage === 100) {
+          state.checkQuestCompletion(questId);
+        }
+      },
+
+      checkQuestCompletion: (questId) => {
+        const state = get();
+        const quest = state.activeQuests.find(q => q.id === questId);
+        if (!quest) return;
+
+        const requiredObjectives = quest.objectives.filter(obj => !obj.isOptional);
+        const completedRequired = requiredObjectives.filter(obj => obj.isCompleted);
+
+        if (completedRequired.length === requiredObjectives.length) {
+          const completedQuest = {
+            ...quest,
+            status: 'completed' as const,
+            completedAt: Date.now(),
+          };
+
+          set((state) => ({
+            quests: state.quests.map(q => q.id === questId ? completedQuest : q),
+            activeQuests: state.activeQuests.filter(q => q.id !== questId),
+            completedQuests: [...state.completedQuests, completedQuest],
+          }));
+
+          state.addNotification(`Quest completed: ${quest.title}`, 'success');
+        }
       },
 
       // UI actions

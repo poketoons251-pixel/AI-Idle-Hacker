@@ -12,6 +12,7 @@ import {
   Activity
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
+import { QuestSystemTest } from '../components/QuestSystemTest';
 
 const ResourceCard: React.FC<{
   title: string;
@@ -284,6 +285,9 @@ export const Dashboard: React.FC = () => {
           </p>
         </div>
       </div>
+      
+      {/* Quest System Test */}
+      <QuestSystemTest />
     </div>
   );
 };
