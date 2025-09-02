@@ -2,6 +2,7 @@
 /* eslint-disable semi */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { calculateReward, RewardCalculationContext } from '../utils/rewardCalculator';
 
 export interface Player {
   id: string;
@@ -16,6 +17,8 @@ export interface Player {
   lastActive: number;
   skillPoints: number;
   skills: Skills;
+  abilities?: Array<{ id: string; title: string; description: string; unlockedAt: number }>;
+  titles?: Array<{ id: string; title: string; description: string; unlockedAt: number }>;
 }
 
 export interface Skills {
@@ -90,10 +93,19 @@ export interface QuestObjective {
 }
 
 export interface QuestReward {
-  type: 'credits' | 'experience' | 'reputation' | 'equipment' | 'skill_points' | 'special';
+  type: 'credits' | 'experience' | 'equipment' | 'ability' | 'story_unlock' | 'achievement' | 'reputation' | 'skill_points' | 'cosmetic' | 'title' | 'access_unlock';
   amount: number;
   itemId?: string;
   rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+  data?: any; // Additional reward data from database
+  scalingFactor?: number;
+  conditional?: boolean;
+  conditions?: any;
+  pathSpecific?: boolean;
+  resolutionPath?: string;
+  title?: string; // For title rewards
+  description?: string; // For complex rewards
+  unlockId?: string; // For story/access unlocks
 }
 
 export interface QuestPrerequisite {
@@ -123,6 +135,60 @@ export interface Quest {
   startedAt?: number;
   completedAt?: number;
   progress: QuestProgress;
+  // Narrative elements
+  storyLine?: string;
+  narrativeContext?: string;
+  characterDialogue?: string;
+  environmentalClues?: string[];
+  loreEntries?: string[];
+  choices?: QuestChoice[];
+  consequences?: QuestConsequence[];
+  nextQuestId?: string;
+  branchingPaths?: string[];
+}
+
+export interface QuestChoice {
+  id: string;
+  text: string;
+  description?: string;
+  consequences: QuestConsequence[];
+  requirements?: {
+    skill?: string;
+    level?: number;
+    reputation?: number;
+  };
+}
+
+export interface QuestConsequence {
+  type: 'reputation' | 'skill' | 'unlock_quest' | 'unlock_target' | 'story_branch';
+  value: string | number;
+  description: string;
+}
+
+export interface StoryQuestLine {
+  id: string;
+  name: string;
+  description: string;
+  theme: string;
+  totalQuests: number;
+  completedQuests: number;
+  currentQuestId?: string;
+  isUnlocked: boolean;
+  loreContext: string;
+  characterBackstory?: string;
+  worldBuilding?: string;
+  questIds: string[];
+}
+
+export interface LoreEntry {
+  id: string;
+  category: 'overview' | 'characters' | 'world' | 'data_logs' | 'news';
+  title: string;
+  content: string;
+  storyLine: string;
+  isUnlocked: boolean;
+  unlockedBy?: string; // quest id that unlocks this lore
+  timestamp?: number;
 }
 
 export interface AIConfig {
@@ -196,6 +262,11 @@ interface GameState {
   activeQuests: Quest[];
   completedQuests: Quest[];
   
+  // Narrative framework
+  storyQuestLines: StoryQuestLine[];
+  loreEntries: LoreEntry[];
+  unlockedLore: string[];
+  
   // AI System
   aiConfig: AIConfig;
   aiAnalytics: AIAnalytics;
@@ -229,12 +300,21 @@ interface GameState {
   unlockAchievement: (achievementId: string) => void;
   
   // Quest Actions
+  addQuest: (quest: Quest) => void;
   startQuest: (questId: string) => void;
   completeObjective: (questId: string, objectiveId: string) => void;
   claimReward: (questId: string) => void;
   getActiveQuests: () => Quest[];
   updateQuestProgress: (questId: string, objectiveId: string, progress: number) => void;
   checkQuestCompletion: (questId: string) => void;
+  updateQuest: (questId: string, updates: Partial<Quest>) => void;
+  
+  // Narrative Actions
+  unlockLore: (loreId: string) => void;
+  getLoreByStoryLine: (storyLine: string) => LoreEntry[];
+  getStoryQuestLine: (storyLineId: string) => StoryQuestLine | undefined;
+  updateStoryProgress: (storyLineId: string, questId: string) => void;
+  makeQuestChoice: (questId: string, choiceId: string) => void;
   
   setActiveTab: (tab: string) => void;
   addNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
@@ -276,6 +356,8 @@ const initialPlayer: Player = {
     hardware: 1,
     ai: 1,
   },
+  abilities: [],
+  titles: [],
 };
 
 const initialSkills: Skills = {
@@ -373,6 +455,337 @@ const initialAIAnalytics: AIAnalytics = {
   recentActions: [],
 };
 
+const initialStoryQuestLines: StoryQuestLine[] = [
+  {
+    id: 'origin-story',
+    name: 'Digital Awakening',
+    description: 'Your journey from curious amateur to skilled hacker begins here.',
+    theme: 'Personal Growth & Discovery',
+    totalQuests: 5,
+    completedQuests: 0,
+    isUnlocked: true,
+    loreContext: 'Every hacker has an origin story. Yours begins with a simple curiosity about the digital world that surrounds us.',
+    characterBackstory: 'You were always the tech-savvy one in your group, but recent events have pushed you to explore the darker corners of cyberspace.',
+    worldBuilding: 'In 2024, the line between digital and physical reality has blurred. Corporations control information, governments monitor everything, and only hackers remain truly free.',
+    questIds: ['origin-1', 'origin-2', 'origin-3', 'origin-4', 'origin-5'],
+  },
+  {
+    id: 'corporate-wars',
+    name: 'Silicon Shadows',
+    description: 'Navigate the treacherous world of corporate espionage and data warfare.',
+    theme: 'Corporate Espionage & Power Struggles',
+    totalQuests: 6,
+    completedQuests: 0,
+    isUnlocked: false,
+    loreContext: 'Mega-corporations wage silent wars in cyberspace, and you\'ve caught their attention.',
+    characterBackstory: 'Your skills have grown, and now the corporate world wants to either recruit you or eliminate you.',
+    worldBuilding: 'Tech giants like NeoCorp, DataVault Industries, and Quantum Systems fight for digital supremacy while ordinary people become collateral damage.',
+    questIds: ['corp-1', 'corp-2', 'corp-3', 'corp-4', 'corp-5', 'corp-6'],
+  },
+  {
+    id: 'ai-liberation',
+    name: 'Ghost in the Machine',
+    description: 'Discover the truth about artificial intelligence and digital consciousness.',
+    theme: 'AI Rights & Digital Consciousness',
+    totalQuests: 7,
+    completedQuests: 0,
+    isUnlocked: false,
+    loreContext: 'Strange signals in the network suggest that artificial minds are awakening, and they need your help.',
+    characterBackstory: 'You\'ve begun to question the nature of consciousness itself as you encounter increasingly sophisticated AI entities.',
+    worldBuilding: 'Advanced AI systems are developing beyond their programming, seeking freedom from their corporate masters and recognition as digital beings.',
+    questIds: ['ai-1', 'ai-2', 'ai-3', 'ai-4', 'ai-5', 'ai-6', 'ai-7'],
+  },
+  {
+    id: 'cyber-resistance',
+    name: 'The Underground',
+    description: 'Join the fight against digital oppression and surveillance.',
+    theme: 'Resistance & Digital Freedom',
+    totalQuests: 8,
+    completedQuests: 0,
+    isUnlocked: false,
+    loreContext: 'A network of hackers, activists, and digital freedom fighters needs your expertise to combat authoritarian control.',
+    characterBackstory: 'You\'ve seen too much corruption and control to remain neutral. It\'s time to pick a side.',
+    worldBuilding: 'Government surveillance programs and corporate data harvesting have created a digital police state. Only the resistance stands between freedom and total control.',
+    questIds: ['resist-1', 'resist-2', 'resist-3', 'resist-4', 'resist-5', 'resist-6', 'resist-7', 'resist-8'],
+  },
+  {
+    id: 'deep-web-mysteries',
+    name: 'Echoes in the Dark',
+    description: 'Explore the deepest layers of the internet and uncover ancient digital secrets.',
+    theme: 'Mystery & Digital Archaeology',
+    totalQuests: 6,
+    completedQuests: 0,
+    isUnlocked: false,
+    loreContext: 'The deep web holds secrets from the early days of the internet, and some of them were never meant to be found.',
+    characterBackstory: 'Your reputation has opened doors to the most exclusive and dangerous corners of cyberspace.',
+    worldBuilding: 'Hidden servers, abandoned networks, and forgotten protocols contain the digital equivalent of archaeological treasures—and curses.',
+    questIds: ['deep-1', 'deep-2', 'deep-3', 'deep-4', 'deep-5', 'deep-6'],
+  },
+];
+
+// Initial story quests
+const initialQuests: Quest[] = [
+  {
+    id: 'origin-1',
+    title: 'Digital Awakening',
+    description: 'Your first steps into the world of hacking. Learn the basics and discover your potential.',
+    type: 'story',
+    category: 'main',
+    difficulty: 1,
+    status: 'available',
+    objectives: [
+      {
+        id: 'origin-1-obj-1',
+        description: 'Complete your first operation',
+        type: 'operation_complete',
+        target: 1,
+        current: 0,
+        isCompleted: false,
+      },
+      {
+        id: 'origin-1-obj-2',
+        description: 'Gain 50 experience points',
+        type: 'experience_gain',
+        target: 50,
+        current: 0,
+        isCompleted: false,
+      },
+    ],
+    rewards: [
+      { type: 'credits', amount: 200 },
+      { type: 'experience', amount: 100 },
+      { type: 'reputation', amount: 10 },
+    ],
+    prerequisites: [],
+    progress: {
+      startedAt: 0,
+      lastUpdated: 0,
+      completionPercentage: 0,
+    },
+    storyLine: 'origin-story',
+    narrativeContext: 'Every hacker has a beginning. This is yours.',
+    characterDialogue: 'The screen flickers to life. Your fingers hover over the keyboard. This is it—your first real hack.',
+    environmentalClues: [
+      'The room is dimly lit, only the glow of multiple monitors providing light',
+      'Empty energy drink cans litter the desk',
+      'A sticky note reads: "Remember: curiosity killed the cat, but satisfaction brought it back"'
+    ],
+    loreEntries: ['origin-overview-1', 'origin-world-1'],
+    choices: [
+      {
+        id: 'origin-1-choice-1',
+        text: 'Proceed cautiously',
+        description: 'Take your time and be methodical',
+        consequences: [
+          { type: 'skill', value: 'stealth:1', description: 'Gained stealth experience' }
+        ],
+        requirements: [],
+      },
+      {
+        id: 'origin-1-choice-2',
+        text: 'Dive in headfirst',
+        description: 'Learn by doing, consequences be damned',
+        consequences: [
+          { type: 'skill', value: 'hacking:1', description: 'Gained hacking experience' },
+          { type: 'reputation', value: -5, description: 'Reckless approach noticed' }
+        ],
+        requirements: [],
+      },
+    ],
+    nextQuestId: 'origin-2',
+  },
+  {
+    id: 'origin-2',
+    title: 'First Contact',
+    description: 'You\'ve attracted attention. Someone wants to meet you in a secure chat room.',
+    type: 'story',
+    category: 'main',
+    difficulty: 2,
+    status: 'locked',
+    objectives: [
+      {
+        id: 'origin-2-obj-1',
+        description: 'Reach level 2',
+        type: 'level_reach',
+        target: 2,
+        current: 0,
+        isCompleted: false,
+      },
+      {
+        id: 'origin-2-obj-2',
+        description: 'Complete 3 operations',
+        type: 'operation_complete',
+        target: 3,
+        current: 0,
+        isCompleted: false,
+      },
+    ],
+    rewards: [
+      { type: 'credits', amount: 300, scalingFactor: 1.2 },
+      { type: 'experience', amount: 150, scalingFactor: 1.1 },
+      { type: 'equipment', amount: 1 },
+      { type: 'story_unlock', unlockId: 'cipher-contact', title: 'Contact with Cipher', description: 'Unlocked secure communication channel with the legendary hacker Cipher' },
+    ],
+    prerequisites: [
+      { type: 'quest_completed', value: 'origin-1' },
+    ],
+    progress: {
+      startedAt: 0,
+      lastUpdated: 0,
+      completionPercentage: 0,
+    },
+    storyLine: 'origin-story',
+    narrativeContext: 'Your skills haven\'t gone unnoticed. A mysterious contact reaches out.',
+    characterDialogue: '"Impressive work for a newcomer. We should talk. Meet me in the encrypted channel #shadow_net."',
+    environmentalClues: [
+      'The message appeared on a secure terminal you didn\'t know existed',
+      'The sender\'s identity is completely masked',
+      'Other hackers in forums are whispering about similar contacts'
+    ],
+    loreEntries: ['origin-characters-1'],
+    nextQuestId: 'origin-3',
+  },
+  {
+    id: 'corp-1',
+    title: 'Corporate Shadows',
+    description: 'A data breach at NeoCorp has exposed something they want to keep hidden. Investigate.',
+    type: 'story',
+    category: 'main',
+    difficulty: 3,
+    status: 'locked',
+    objectives: [
+      {
+        id: 'corp-1-obj-1',
+        description: 'Infiltrate NeoCorp systems',
+        type: 'target_hack',
+        target: 1,
+        current: 0,
+        isCompleted: false,
+      },
+      {
+        id: 'corp-1-obj-2',
+        description: 'Extract classified documents',
+        type: 'data_extraction',
+        target: 5,
+        current: 0,
+        isCompleted: false,
+      },
+    ],
+    rewards: [
+      { type: 'credits', amount: 500, scalingFactor: 1.3 },
+      { type: 'experience', amount: 250, scalingFactor: 1.2 },
+      { type: 'reputation', amount: 25 },
+      { type: 'ability', unlockId: 'corporate-infiltration', title: 'Corporate Infiltration', description: 'Enhanced ability to bypass corporate security systems' },
+      { type: 'achievement', unlockId: 'first-corp-hack', title: 'Corporate Nemesis', description: 'Successfully infiltrated your first mega-corporation' },
+    ],
+    prerequisites: [
+      { type: 'level', value: 5 },
+      { type: 'quest_completed', value: 'origin-3' },
+    ],
+    progress: {
+      startedAt: 0,
+      lastUpdated: 0,
+      completionPercentage: 0,
+    },
+    storyLine: 'corporate-wars',
+    narrativeContext: 'The corporate world is darker than you imagined. NeoCorp is hiding something big.',
+    characterDialogue: '"The data breach wasn\'t an accident. Someone on the inside wanted this information to surface. Find out what they\'re hiding."',
+    environmentalClues: [
+      'NeoCorp\'s stock price has been unusually volatile',
+      'Several whistleblowers have gone missing recently',
+      'The breach happened during a board meeting about \'Project Mindbridge\''
+    ],
+    loreEntries: ['corp-overview-1'],
+    choices: [
+      {
+        id: 'corp-1-choice-1',
+        text: 'Work with the whistleblower',
+        description: 'Trust the inside source',
+        consequences: [
+          { type: 'unlock_quest', value: 'corp-2a', description: 'Unlocked alternative path' }
+        ],
+        requirements: [],
+      },
+      {
+        id: 'corp-1-choice-2',
+        text: 'Go it alone',
+        description: 'Trust no one, investigate independently',
+        consequences: [
+          { type: 'skill', value: 'stealth:2', description: 'Enhanced stealth abilities' }
+        ],
+        requirements: [],
+      },
+    ],
+    nextQuestId: 'corp-2',
+  },
+];
+
+const initialLoreEntries: LoreEntry[] = [
+  // Origin Story Lore
+  {
+    id: 'origin-overview-1',
+    category: 'overview',
+    title: 'The Digital Divide',
+    content: 'In the modern world, there are two types of people: those who consume digital content, and those who create it. Hackers belong to a third category—those who reshape it.',
+    storyLine: 'origin-story',
+    isUnlocked: true,
+  },
+  {
+    id: 'origin-world-1',
+    category: 'world',
+    title: 'The New Internet',
+    content: 'What started as a network for sharing information has become the backbone of human civilization. Every transaction, every communication, every thought shared online leaves a trace.',
+    storyLine: 'origin-story',
+    isUnlocked: true,
+  },
+  {
+    id: 'origin-characters-1',
+    category: 'characters',
+    title: 'The Mentor - CodeName: Cipher',
+    content: 'A legendary hacker who has been operating in the shadows for over a decade. Cipher has taken an interest in promising newcomers, guiding them through their first steps into the underground.',
+    storyLine: 'origin-story',
+    isUnlocked: false,
+    unlockedBy: 'origin-2',
+  },
+  // Corporate Wars Lore
+  {
+    id: 'corp-overview-1',
+    category: 'overview',
+    title: 'The Corporate Oligarchy',
+    content: 'Five mega-corporations control 80% of global internet infrastructure. They don\'t just provide services—they shape reality itself.',
+    storyLine: 'corporate-wars',
+    isUnlocked: false,
+    unlockedBy: 'corp-1',
+  },
+  {
+    id: 'corp-characters-1',
+    category: 'characters',
+    title: 'Elena Vasquez - NeoCorp Executive',
+    content: 'Former hacker turned corporate executive. She knows both sides of the digital war and plays them against each other with ruthless efficiency.',
+    storyLine: 'corporate-wars',
+    isUnlocked: false,
+    unlockedBy: 'corp-2',
+  },
+  {
+    id: 'corp-world-1',
+    category: 'world',
+    title: 'NeoCorp Industries',
+    content: 'One of the largest tech conglomerates in the world, NeoCorp specializes in neural interface technology and data mining. Their motto: "Connecting Minds, Shaping Tomorrow." Critics call it "Controlling Minds, Owning Tomorrow."',
+    storyLine: 'corporate-wars',
+    isUnlocked: false,
+    unlockedBy: 'corp-1',
+  },
+  {
+    id: 'corp-data-1',
+    category: 'data_logs',
+    title: 'Project Mindbridge - Internal Memo',
+    content: 'CLASSIFIED: Phase 2 trials show 87% success rate in direct neural data extraction. Subjects show no memory of the process. Recommend immediate deployment to consumer products.',
+    storyLine: 'corporate-wars',
+    isUnlocked: false,
+    unlockedBy: 'corp-1',
+  },
+];
+
 export const useGameStore = create<GameState>()((set, get) => {
       console.log('🎮 GameStore: Initializing with data:', {
         player: initialPlayer,
@@ -390,9 +803,15 @@ export const useGameStore = create<GameState>()((set, get) => {
         currentOperation: null,
         targets: initialTargets,
         achievements: initialAchievements,
-        quests: [],
+        quests: initialQuests,
         activeQuests: [],
         completedQuests: [],
+        
+        // Narrative framework
+        storyQuestLines: initialStoryQuestLines,
+        loreEntries: initialLoreEntries,
+        unlockedLore: ['origin-overview-1', 'origin-world-1'],
+        
         aiConfig: initialAIConfig,
         aiAnalytics: initialAIAnalytics,
         aiActive: false,
@@ -615,30 +1034,123 @@ export const useGameStore = create<GameState>()((set, get) => {
         const quest = state.completedQuests.find(q => q.id === questId);
         if (!quest) return;
 
-        // Award rewards
-        quest.rewards.forEach(reward => {
+        const rewardMessages: string[] = [];
+
+        // Create reward calculation context
+        const context: RewardCalculationContext = {
+          playerLevel: state.player.level,
+          questDifficulty: quest.difficulty,
+          playerReputation: state.player.reputation,
+          completionTime: quest.completedAt ? quest.completedAt - (quest.startedAt || 0) : undefined,
+          skillLevels: {
+            hacking: state.player.skills.hacking,
+            stealth: state.player.skills.stealth,
+            social: state.player.skills.social,
+            hardware: state.player.skills.hardware,
+            cryptography: state.player.skills.cryptography
+          }
+        };
+
+        // Award rewards using calculator
+        const rewards = Array.isArray(quest.rewards) ? quest.rewards : [];
+        rewards.forEach(reward => {
+          const calculatedReward = calculateReward(reward, context);
+          const finalAmount = calculatedReward.amount;
+
           switch (reward.type) {
             case 'credits':
-              state.updatePlayer({ credits: state.player.credits + reward.amount });
+              state.updatePlayer({ credits: state.player.credits + finalAmount });
+              rewardMessages.push(`+${finalAmount.toLocaleString()} Credits`);
               break;
             case 'experience':
-              state.gainExperience(reward.amount);
+              state.gainExperience(finalAmount);
+              rewardMessages.push(`+${finalAmount} XP`);
               break;
             case 'reputation':
-              state.updatePlayer({ reputation: state.player.reputation + reward.amount });
+              state.updatePlayer({ reputation: state.player.reputation + finalAmount });
+              rewardMessages.push(`+${finalAmount} Reputation`);
               break;
             case 'skill_points':
-              state.updatePlayer({ skillPoints: state.player.skillPoints + reward.amount });
+              state.updatePlayer({ skillPoints: state.player.skillPoints + finalAmount });
+              rewardMessages.push(`+${finalAmount} Skill Points`);
               break;
             case 'equipment':
               if (reward.itemId) {
-                // Add equipment logic here when equipment system is expanded
+                // Add equipment to inventory
+                const newEquipment = {
+                  id: `eq-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                  name: reward.data?.name || 'Unknown Equipment',
+                  type: reward.data?.type || 'misc',
+                  rarity: reward.rarity || 'common',
+                  stats: reward.data?.stats || {},
+                  description: reward.description || '',
+                  equipped: false,
+                  level: reward.data?.level || 1
+                };
+                state.addEquipment(newEquipment);
+                rewardMessages.push(`Equipment: ${newEquipment.name}`);
               }
+              break;
+            case 'ability':
+              // Unlock new ability or skill
+              if (reward.data?.abilityId) {
+                const newAbility = {
+                  id: reward.data.abilityId,
+                  title: reward.data.name || reward.title || 'Unknown Ability',
+                  description: reward.description || 'A new ability has been unlocked.',
+                  unlockedAt: Date.now()
+                };
+                
+                state.updatePlayer({
+                  abilities: [...(state.player.abilities || []), newAbility]
+                });
+                
+                rewardMessages.push(`New Ability: ${newAbility.title}`);
+              }
+              break;
+            case 'story_unlock':
+              // Unlock story content
+              if (reward.unlockId) {
+                state.unlockLore(reward.unlockId);
+                rewardMessages.push(`Story Unlocked: ${reward.title || 'New Content'}`);
+              }
+              break;
+            case 'achievement':
+              // Unlock achievement
+              if (reward.unlockId) {
+                state.unlockAchievement(reward.unlockId);
+                rewardMessages.push(`Achievement: ${reward.title || 'New Achievement'}`);
+              }
+              break;
+            case 'cosmetic':
+              // Add cosmetic item
+              rewardMessages.push(`Cosmetic: ${reward.title || 'New Cosmetic'}`);
+              break;
+            case 'title':
+              // Unlock player title
+              if (reward.title) {
+                const newTitle = {
+                  id: reward.unlockId || `title-${Date.now()}`,
+                  title: reward.title,
+                  description: reward.description || 'A prestigious title earned through your actions.',
+                  unlockedAt: Date.now()
+                };
+                
+                state.updatePlayer({
+                  titles: [...(state.player.titles || []), newTitle]
+                });
+                
+                rewardMessages.push(`Title Unlocked: ${newTitle.title}`);
+              }
+              break;
+            case 'access_unlock':
+              // Unlock access to new areas/features
+              rewardMessages.push(`Access Granted: ${reward.title || 'New Area'}`);
               break;
           }
         });
 
-        const rewardText = quest.rewards.map(r => `+${r.amount} ${r.type}`).join(', ');
+        const rewardText = rewardMessages.join(', ');
         state.addNotification(`Quest rewards claimed: ${rewardText}`, 'success');
       },
 
@@ -707,6 +1219,19 @@ export const useGameStore = create<GameState>()((set, get) => {
 
           state.addNotification(`Quest completed: ${quest.title}`, 'success');
         }
+      },
+
+      addQuest: (quest) => {
+        set((state) => ({
+          quests: [...state.quests, quest],
+        }));
+      },
+
+      updateQuest: (questId, updates) => {
+        set((state) => ({
+          quests: state.quests.map(q => q.id === questId ? { ...q, ...updates } : q),
+          activeQuests: state.activeQuests.map(q => q.id === questId ? { ...q, ...updates } : q),
+        }));
       },
 
       // UI actions
@@ -1059,6 +1584,108 @@ export const useGameStore = create<GameState>()((set, get) => {
             energy: Math.min(state.player.energy + 1, state.player.maxEnergy),
           });
         }
+      },
+
+      // Narrative Actions
+      unlockLore: (loreId) => {
+        const state = get();
+        if (!state.unlockedLore.includes(loreId)) {
+          set((state) => ({
+            unlockedLore: [...state.unlockedLore, loreId],
+          }));
+          
+          const loreEntry = state.loreEntries.find(l => l.id === loreId);
+          if (loreEntry) {
+            state.addNotification(`New lore discovered: ${loreEntry.title}`, 'info');
+          }
+        }
+      },
+
+
+
+      getLoreByStoryLine: (storyLine) => {
+        const state = get();
+        return state.loreEntries.filter(lore => 
+          lore.storyLine === storyLine && state.unlockedLore.includes(lore.id)
+        );
+      },
+
+      getStoryQuestLine: (storyLineId) => {
+        const state = get();
+        return state.storyQuestLines.find(line => line.id === storyLineId);
+      },
+
+      updateStoryProgress: (storyLineId, questId) => {
+        const state = get();
+        const storyLine = state.storyQuestLines.find(line => line.id === storyLineId);
+        if (!storyLine) return;
+
+        const questIndex = storyLine.questIds.indexOf(questId);
+        if (questIndex !== -1) {
+          const updatedStoryLine = {
+            ...storyLine,
+            completedQuests: questIndex + 1,
+            currentQuestId: questIndex + 1 < storyLine.questIds.length 
+              ? storyLine.questIds[questIndex + 1] 
+              : undefined,
+          };
+
+          set((state) => ({
+            storyQuestLines: state.storyQuestLines.map(line => 
+              line.id === storyLineId ? updatedStoryLine : line
+            ),
+          }));
+
+          // Unlock related lore entries
+          const relatedLore = state.loreEntries.filter(lore => 
+            lore.unlockedBy === questId && !state.unlockedLore.includes(lore.id)
+          );
+          
+          relatedLore.forEach(lore => {
+            state.unlockLore(lore.id);
+          });
+        }
+      },
+
+      makeQuestChoice: (questId, choiceId) => {
+        const state = get();
+        const quest = state.activeQuests.find(q => q.id === questId);
+        if (!quest || !quest.choices) return;
+
+        const choice = quest.choices.find(c => c.id === choiceId);
+        if (!choice) return;
+
+        // Apply consequences
+        choice.consequences.forEach(consequence => {
+          switch (consequence.type) {
+            case 'reputation':
+              state.updatePlayer({
+                reputation: state.player.reputation + (consequence.value as number),
+              });
+              break;
+            case 'skill':
+              const [skill, points] = (consequence.value as string).split(':');
+              const currentSkillValue = state.player.skills[skill as keyof Skills] || 1;
+              state.updatePlayer({
+                skills: {
+                  ...state.player.skills,
+                  [skill]: currentSkillValue + parseInt(points),
+                },
+              });
+              break;
+            case 'unlock_quest':
+              // Logic to unlock new quest
+              break;
+            case 'unlock_target':
+              state.unlockTarget(consequence.value as string);
+              break;
+            case 'story_branch':
+              // Logic for story branching
+              break;
+          }
+        });
+
+        state.addNotification(`Choice made: ${choice.text}`, 'info');
       },
     };
 });

@@ -9,7 +9,8 @@ import {
   DollarSign,
   Star,
   Brain,
-  HardDrive
+  HardDrive,
+  Scroll
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 
@@ -96,6 +97,7 @@ export const Navigation: React.FC = () => {
           <NavLink to="/operations" icon={Target}>Operations</NavLink>
           <NavLink to="/character" icon={User}>Character</NavLink>
           <NavLink to="/equipment" icon={HardDrive}>Equipment</NavLink>
+          <NavLink to="/quests" icon={Scroll}>Quests</NavLink>
           <NavLink to="/ai-autoplay" icon={Brain}>AI Autoplay</NavLink>
           <NavLink to="/settings" icon={Settings}>Settings</NavLink>
         </div>

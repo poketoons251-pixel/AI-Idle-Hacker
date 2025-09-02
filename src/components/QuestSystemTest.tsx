@@ -1,34 +1,60 @@
 import React, { useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import type { Quest } from '../store/gameStore';
+import { narrativeQuests } from '../data/narrativeQuests';
+import { questTypes } from '../data/questTypes';
 
-// Test quest data
+// Enhanced Phase 2 test quest data
 const testQuest: Quest = {
-  id: 'test-quest-1',
-  title: 'First Steps in Hacking',
-  description: 'Complete your first operation to learn the basics of hacking.',
+  id: 'test-quest-phase2',
+  title: 'Digital Awakening - Phase 2 Test',
+  description: 'Experience the enhanced quest system with narrative elements, story progression, and dynamic mechanics.',
   type: 'story',
-  category: 'progression',
-  difficulty: 1,
+  category: 'main',
+  difficulty: 2,
+  storyLine: 'origin',
   objectives: [
     {
       id: 'obj-1',
-      description: 'Complete 1 operation',
-      type: 'operation_complete',
+      description: 'Complete your first hack using enhanced mechanics',
+      type: 'hack_complete',
       target: 1,
       current: 0,
       isCompleted: false,
       isOptional: false,
     },
+    {
+      id: 'obj-2',
+      description: 'Discover a piece of lore',
+      type: 'achievement_unlock',
+      target: 1,
+      current: 0,
+      isCompleted: false,
+      isOptional: true,
+    },
   ],
   rewards: [
     {
       type: 'credits',
-      amount: 100,
+      amount: 500,
+      scalingFactor: 1.2,
     },
     {
       type: 'experience',
-      amount: 50,
+      amount: 200,
+      scalingFactor: 1.1,
+    },
+    {
+      type: 'story_branch',
+      value: 'origin_awakening',
+      title: 'The First Step',
+      description: 'Your journey into the digital underground begins.',
+    },
+    {
+      type: 'achievement',
+      achievementId: 'phase2_tester',
+      title: 'Phase 2 Pioneer',
+      description: 'Successfully tested the enhanced quest system.',
     },
   ],
   prerequisites: [
@@ -44,6 +70,7 @@ const testQuest: Quest = {
     lastUpdated: 0,
     completionPercentage: 0,
   },
+
 };
 
 export const QuestSystemTest: React.FC = () => {
@@ -58,64 +85,125 @@ export const QuestSystemTest: React.FC = () => {
   } = useGameStore();
 
   const runTest = () => {
-    console.log('🧪 Testing Quest System Foundation...');
+    console.log('🧪 Testing Enhanced Quest System Phase 2...');
     
-    // Add test quest to store
+    // Add enhanced test quest to store
     useGameStore.setState((state) => ({
-      quests: [...state.quests.filter(q => q.id !== 'test-quest-1'), testQuest],
+      quests: [...state.quests.filter(q => q.id !== 'test-quest-phase2'), testQuest],
     }));
     
-    console.log('✅ Test quest added to store');
+    console.log('✅ Enhanced test quest added to store');
+    console.log('📖 Enhanced quest with story line:', testQuest.storyLine);
     
     // Start the quest
     setTimeout(() => {
-      startQuest('test-quest-1');
-      console.log('✅ Quest started');
+      startQuest('test-quest-phase2');
+      console.log('✅ Quest started with story line:', testQuest.storyLine);
       
-      // Update progress after a short delay
+      // Update progress for first objective
       setTimeout(() => {
-        updateQuestProgress('test-quest-1', 'obj-1', 1);
-        console.log('✅ Quest progress updated');
+        updateQuestProgress('test-quest-phase2', 'obj-1', 1);
+        console.log('✅ Primary objective completed');
         
-        // Check if quest completed and claim reward
+        // Update progress for optional objective
         setTimeout(() => {
-          const currentState = useGameStore.getState();
-          if (currentState.completedQuests.some(q => q.id === 'test-quest-1')) {
-            claimReward('test-quest-1');
-            console.log('✅ Quest reward claimed');
-          }
-          console.log('🎉 Quest System Test Complete!');
+          updateQuestProgress('test-quest-phase2', 'obj-2', 1);
+          console.log('✅ Optional lore objective completed');
+          
+          // Check if quest completed and claim reward
+          setTimeout(() => {
+            const currentState = useGameStore.getState();
+            const completedQuest = currentState.completedQuests.find(q => q.id === 'test-quest-phase2');
+            if (completedQuest) {
+              console.log('📖 Quest completed successfully');
+              claimReward('test-quest-phase2');
+              console.log('✅ Enhanced quest rewards claimed (including story unlock & achievement)');
+            }
+            console.log('🎉 Enhanced Quest System Phase 2 Test Complete!');
+          }, 100);
         }, 100);
       }, 100);
     }, 100);
   };
 
+  const loadNarrativeQuests = () => {
+    console.log('📚 Loading narrative quests...');
+    useGameStore.setState((state) => ({
+      quests: [...state.quests.filter(q => !narrativeQuests.some(nq => nq.id === q.id)), ...narrativeQuests],
+    }));
+    console.log('✅ Loaded', narrativeQuests.length, 'narrative quests');
+  };
+
+  const testQuestTypes = () => {
+    console.log('🎯 Testing quest types system...');
+    questTypes.forEach((type, index) => {
+      if (index < 3) { // Test first 3 types to avoid spam
+        console.log(`🔧 Quest Type: ${type.name} - ${type.description}`);
+        console.log(`   Quest Type: ${type.name} - ${type.description}`);
+      }
+    });
+    console.log('✅ Quest types system functional');
+  };
+
   return (
     <div className="p-4 bg-gray-800 text-green-400 rounded-lg m-4">
-      <h3 className="text-lg font-bold mb-4">Quest System Test</h3>
+      <h3 className="text-lg font-bold mb-4">Enhanced Quest System Phase 2 Test</h3>
       
-      <div className="space-y-2 mb-4">
-        <p>Total Quests: {quests.length}</p>
-        <p>Active Quests: {activeQuests.length}</p>
-        <p>Completed Quests: {completedQuests.length}</p>
-        <p>Player Credits: {player.credits}</p>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="space-y-2">
+          <p>Total Quests: {quests.length}</p>
+          <p>Active Quests: {activeQuests.length}</p>
+          <p>Completed Quests: {completedQuests.length}</p>
+          <p>Player Credits: {player.credits}</p>
+        </div>
+        <div className="space-y-2">
+          <p>Narrative Quests: {quests.filter(q => q.storyLine).length}</p>
+          <p>Story Lines: {new Set(quests.filter(q => q.storyLine).map(q => q.storyLine)).size}</p>
+          <p>Quest Types Available: {questTypes.length}</p>
+          <p>Player Level: {player.level}</p>
+        </div>
       </div>
       
-      <button
-        onClick={runTest}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-      >
-        Run Quest System Test
-      </button>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          onClick={runTest}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >
+          Run Enhanced Test
+        </button>
+        <button
+          onClick={loadNarrativeQuests}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded"
+        >
+          Load Narrative Quests
+        </button>
+        <button
+          onClick={testQuestTypes}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+        >
+          Test Quest Types
+        </button>
+      </div>
       
       {activeQuests.length > 0 && (
         <div className="mt-4">
           <h4 className="font-bold">Active Quests:</h4>
           {activeQuests.map((quest) => (
-            <div key={quest.id} className="bg-gray-700 p-2 rounded mt-2">
-              <p className="font-semibold">{quest.title}</p>
-              <p className="text-sm">{quest.description}</p>
-              <p className="text-xs">Progress: {quest.progress.completionPercentage}%</p>
+            <div key={quest.id} className="bg-gray-700 p-3 rounded mt-2 border-l-4 border-blue-500">
+              <div className="flex justify-between items-start mb-2">
+                <p className="font-semibold">{quest.title}</p>
+                {quest.storyLine && (
+                  <span className="text-xs bg-purple-600 px-2 py-1 rounded">
+                    {quest.storyLine}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm mb-2">{quest.description}</p>
+              <div className="flex justify-between items-center">
+                <p className="text-xs">Progress: {quest.progress.completionPercentage}%</p>
+                <p className="text-xs">Difficulty: {quest.difficulty}</p>
+              </div>
+
             </div>
           ))}
         </div>
@@ -125,9 +213,17 @@ export const QuestSystemTest: React.FC = () => {
         <div className="mt-4">
           <h4 className="font-bold">Completed Quests:</h4>
           {completedQuests.map((quest) => (
-            <div key={quest.id} className="bg-green-800 p-2 rounded mt-2">
-              <p className="font-semibold">{quest.title}</p>
-              <p className="text-xs">Status: {quest.status}</p>
+            <div key={quest.id} className="bg-green-800 p-3 rounded mt-2 border-l-4 border-green-400">
+              <div className="flex justify-between items-start mb-2">
+                <p className="font-semibold">{quest.title}</p>
+                {quest.storyLine && (
+                  <span className="text-xs bg-green-600 px-2 py-1 rounded">
+                    {quest.storyLine}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs mb-2">Status: {quest.status}</p>
+
             </div>
           ))}
         </div>

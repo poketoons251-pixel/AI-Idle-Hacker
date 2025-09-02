@@ -39,6 +39,7 @@ graph TD
 | /ai-autoplay  | AI Autoplay - strategy configuration, performance analytics, override controls |
 | /marketplace  | Marketplace - equipment shop, AI modules, premium store                   |
 | /leaderboards | Leaderboards - global rankings, achievements, social features             |
+| /quests       | Quest System - story campaigns, daily challenges, achievement tracking    |
 | /settings     | Settings - game configuration, account management, tutorials              |
 | /login        | Authentication - login/register with email or OAuth                       |
 
@@ -106,6 +107,61 @@ Response:
 | new\_stats | object     | Updated equipment statistics |
 | cost       | number     | Credits spent on upgrade     |
 
+**Quest System Management**
+
+```
+GET /api/quests/available
+```
+
+Response:
+
+| Param Name | Param Type | Description |
+|------------|------------|-------------|
+| quests | array | Available quests for the player |
+| story_progress | object | Current story campaign progress |
+| daily_quests | array | Available daily challenges |
+| weekly_quests | array | Available weekly challenges |
+
+```
+POST /api/quests/start
+```
+
+Request:
+
+| Param Name | Param Type | isRequired | Description |
+|------------|------------|------------|-------------|
+| quest_id | string | true | Quest identifier to start |
+| choices | object | false | Player choices for branching quests |
+
+Response:
+
+| Param Name | Param Type | Description |
+|------------|------------|-------------|
+| success | boolean | Quest start status |
+| active_objectives | array | Current quest objectives |
+| story_context | object | Narrative context and lore |
+
+```
+POST /api/quests/complete
+```
+
+Request:
+
+| Param Name | Param Type | isRequired | Description |
+|------------|------------|------------|-------------|
+| quest_id | string | true | Quest identifier to complete |
+| completion_data | object | true | Quest completion evidence/data |
+| player_choices | object | false | Final player decisions |
+
+Response:
+
+| Param Name | Param Type | Description |
+|------------|------------|-------------|
+| success | boolean | Quest completion status |
+| rewards | object | Earned rewards (credits, items, abilities) |
+| story_impact | object | Narrative consequences of choices |
+| unlocked_content | array | New quests or areas unlocked |
+
 **AI Autoplay Management**
 
 ```
@@ -165,10 +221,16 @@ erDiagram
   PLAYERS ||--o{ EQUIPMENT : owns
   PLAYERS ||--o{ AI_COMPANIONS : has
   PLAYERS ||--o{ ACHIEVEMENTS : unlocks
+  PLAYERS ||--o{ QUESTS : participates
+  PLAYERS ||--o{ QUEST_PROGRESS : tracks
+  PLAYERS ||--o{ STORY_CHOICES : makes
   PLAYERS ||--|| AI_CONFIGS : configures
   PLAYERS ||--o{ AI_ANALYTICS : generates
   OPERATIONS ||--|| TARGETS : targets
   EQUIPMENT ||--|| EQUIPMENT_TYPES : belongs_to
+  QUESTS ||--o{ QUEST_OBJECTIVES : contains
+  QUESTS ||--o{ QUEST_REWARDS : offers
+  QUESTS ||--o{ QUEST_PREREQUISITES : requires
   
   PLAYERS {
     uuid id PK
@@ -261,6 +323,69 @@ erDiagram
     decimal efficiency_score
     jsonb recent_actions
     timestamp recorded_at
+  }
+  
+  QUESTS {
+    uuid id PK
+    string title
+    text description
+    string quest_type
+    integer difficulty_level
+    jsonb story_context
+    jsonb branching_paths
+    boolean repeatable
+    timestamp available_from
+    timestamp available_until
+    boolean active
+  }
+  
+  QUEST_OBJECTIVES {
+    uuid id PK
+    uuid quest_id FK
+    string objective_type
+    text description
+    jsonb target_criteria
+    jsonb completion_data
+    boolean optional
+    integer order_index
+  }
+  
+  QUEST_PROGRESS {
+    uuid id PK
+    uuid player_id FK
+    uuid quest_id FK
+    string status
+    jsonb objective_progress
+    jsonb player_choices
+    timestamp started_at
+    timestamp completed_at
+  }
+  
+  QUEST_REWARDS {
+    uuid id PK
+    uuid quest_id FK
+    string reward_type
+    jsonb reward_data
+    boolean conditional
+    jsonb conditions
+  }
+  
+  QUEST_PREREQUISITES {
+    uuid id PK
+    uuid quest_id FK
+    string prerequisite_type
+    jsonb prerequisite_data
+    boolean required
+  }
+  
+  STORY_CHOICES {
+    uuid id PK
+    uuid player_id FK
+    uuid quest_id FK
+    string choice_point
+    jsonb selected_option
+    jsonb consequences
+    timestamp made_at
   }
 ```
 
@@ -480,5 +605,141 @@ CREATE INDEX idx_ai_analytics_efficiency ON ai_analytics(efficiency_score DESC);
 -- Grant permissions
 GRANT SELECT ON ai_analytics TO anon;
 GRANT ALL PRIVILEGES ON ai_analytics TO authenticated;
+```
+
+**Quest System Tables**
+
+```sql
+-- Create quests table
+CREATE TABLE quests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    quest_type VARCHAR(50) NOT NULL CHECK (quest_type IN ('story', 'daily', 'weekly', 'achievement', 'special_event')),
+    difficulty_level INTEGER NOT NULL CHECK (difficulty_level >= 1 AND difficulty_level <= 10),
+    story_context JSONB DEFAULT '{}',
+    branching_paths JSONB DEFAULT '{}',
+    repeatable BOOLEAN DEFAULT false,
+    available_from TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    available_until TIMESTAMP WITH TIME ZONE,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create quest objectives table
+CREATE TABLE quest_objectives (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    quest_id UUID NOT NULL REFERENCES quests(id) ON DELETE CASCADE,
+    objective_type VARCHAR(50) NOT NULL CHECK (objective_type IN ('hack_target', 'collect_data', 'infiltrate_network', 'social_engineer', 'upgrade_equipment', 'reach_level')),
+    description TEXT NOT NULL,
+    target_criteria JSONB NOT NULL,
+    completion_data JSONB DEFAULT '{}',
+    optional BOOLEAN DEFAULT false,
+    order_index INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create quest progress table
+CREATE TABLE quest_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    quest_id UUID NOT NULL REFERENCES quests(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'active', 'completed', 'failed', 'abandoned')),
+    objective_progress JSONB DEFAULT '{}',
+    player_choices JSONB DEFAULT '{}',
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(player_id, quest_id)
+);
+
+-- Create quest rewards table
+CREATE TABLE quest_rewards (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    quest_id UUID NOT NULL REFERENCES quests(id) ON DELETE CASCADE,
+    reward_type VARCHAR(50) NOT NULL CHECK (reward_type IN ('credits', 'experience', 'equipment', 'ability', 'story_unlock', 'achievement')),
+    reward_data JSONB NOT NULL,
+    conditional BOOLEAN DEFAULT false,
+    conditions JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create quest prerequisites table
+CREATE TABLE quest_prerequisites (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    quest_id UUID NOT NULL REFERENCES quests(id) ON DELETE CASCADE,
+    prerequisite_type VARCHAR(50) NOT NULL CHECK (prerequisite_type IN ('level', 'quest_completed', 'equipment_owned', 'skill_level', 'story_choice')),
+    prerequisite_data JSONB NOT NULL,
+    required BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create story choices table
+CREATE TABLE story_choices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    quest_id UUID NOT NULL REFERENCES quests(id) ON DELETE CASCADE,
+    choice_point VARCHAR(100) NOT NULL,
+    selected_option JSONB NOT NULL,
+    consequences JSONB DEFAULT '{}',
+    made_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for quest system
+CREATE INDEX idx_quests_type ON quests(quest_type);
+CREATE INDEX idx_quests_difficulty ON quests(difficulty_level);
+CREATE INDEX idx_quests_active ON quests(active) WHERE active = true;
+CREATE INDEX idx_quest_objectives_quest_id ON quest_objectives(quest_id);
+CREATE INDEX idx_quest_objectives_type ON quest_objectives(objective_type);
+CREATE INDEX idx_quest_progress_player_id ON quest_progress(player_id);
+CREATE INDEX idx_quest_progress_status ON quest_progress(status);
+CREATE INDEX idx_quest_rewards_quest_id ON quest_rewards(quest_id);
+CREATE INDEX idx_quest_prerequisites_quest_id ON quest_prerequisites(quest_id);
+CREATE INDEX idx_story_choices_player_id ON story_choices(player_id);
+CREATE INDEX idx_story_choices_quest_id ON story_choices(quest_id);
+
+-- Grant permissions for quest system
+GRANT SELECT ON quests TO anon;
+GRANT ALL PRIVILEGES ON quests TO authenticated;
+GRANT SELECT ON quest_objectives TO anon;
+GRANT ALL PRIVILEGES ON quest_objectives TO authenticated;
+GRANT SELECT ON quest_progress TO anon;
+GRANT ALL PRIVILEGES ON quest_progress TO authenticated;
+GRANT SELECT ON quest_rewards TO anon;
+GRANT ALL PRIVILEGES ON quest_rewards TO authenticated;
+GRANT SELECT ON quest_prerequisites TO anon;
+GRANT ALL PRIVILEGES ON quest_prerequisites TO authenticated;
+GRANT SELECT ON story_choices TO anon;
+GRANT ALL PRIVILEGES ON story_choices TO authenticated;
+
+-- Insert initial story campaign quests
+INSERT INTO quests (title, description, quest_type, difficulty_level, story_context, branching_paths) VALUES
+('The First Breach', 'Your journey into the digital underworld begins. A mysterious contact has offered you your first real hacking job - infiltrate a small corporate network to prove your worth.', 'story', 1, '{"chapter": 1, "theme": "initiation", "characters": ["mysterious_contact"], "location": "underground_forum"}', '{"approach": ["stealth", "aggressive", "social"]}'),
+('Digital Shadows', 'The corporate data you stole reveals a conspiracy. Choose your path: expose the truth to the media, sell the information to competitors, or use it as leverage against the corporation.', 'story', 2, '{"chapter": 2, "theme": "moral_choice", "characters": ["journalist", "corporate_rival", "ceo"], "location": "secure_meeting"}', '{"resolution": ["whistleblower", "profiteer", "blackmailer"]}'),
+('The Network War', 'Your previous choices have consequences. Rival hacker groups are now aware of your existence. Navigate the complex web of digital politics and choose your allies wisely.', 'story', 3, '{"chapter": 3, "theme": "faction_choice", "characters": ["ghost_collective", "data_liberation_front", "cyber_mercenaries"], "location": "dark_web_summit"}', '{"alliance": ["idealists", "anarchists", "mercenaries"]}');
+
+-- Insert quest objectives for the first story quest
+INSERT INTO quest_objectives (quest_id, objective_type, description, target_criteria, order_index) 
+SELECT id, 'hack_target', 'Infiltrate the corporate network without triggering security alerts', '{"target_type": "corporate_server", "stealth_required": true, "max_detection_level": 2}', 1
+FROM quests WHERE title = 'The First Breach';
+
+INSERT INTO quest_objectives (quest_id, objective_type, description, target_criteria, order_index)
+SELECT id, 'collect_data', 'Extract sensitive financial records from the database', '{"data_type": "financial_records", "minimum_files": 5, "encryption_level": "basic"}', 2
+FROM quests WHERE title = 'The First Breach';
+
+-- Insert quest rewards
+INSERT INTO quest_rewards (quest_id, reward_type, reward_data)
+SELECT id, 'credits', '{"amount": 500}'
+FROM quests WHERE title = 'The First Breach';
+
+INSERT INTO quest_rewards (quest_id, reward_type, reward_data)
+SELECT id, 'experience', '{"amount": 100}'
+FROM quests WHERE title = 'The First Breach';
+
+INSERT INTO quest_rewards (quest_id, reward_type, reward_data)
+SELECT id, 'story_unlock', '{"next_chapter": 2, "unlocked_contacts": ["mysterious_contact"]}'
+FROM quests WHERE title = 'The First Breach';
 ```
 

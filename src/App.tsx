@@ -9,6 +9,7 @@ import { Marketplace } from './pages/Marketplace';
 import { Leaderboards } from './pages/Leaderboards';
 import { Settings } from './pages/Settings';
 import { AIAutoplay } from './pages/AIAutoplay';
+import { Quests } from './pages/Quests';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/operations" element={<Operations />} />
           <Route path="/character" element={<Character />} />
           <Route path="/equipment" element={<Equipment />} />
+          <Route path="/quests" element={<Quests />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/leaderboards" element={<Leaderboards />} />
           <Route path="/ai-autoplay" element={<AIAutoplay />} />

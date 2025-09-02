@@ -13,6 +13,10 @@ import {
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { QuestSystemTest } from '../components/QuestSystemTest';
+import { ProgressionPanel } from '../components/progression/ProgressionPanel';
+import NarrativeQuestSystem from '../components/narrative/NarrativeQuestSystem';
+import QuestGenerator from '../components/quest/QuestGenerator';
+import EnhancedQuestSystem from '../components/quest/EnhancedQuestSystem';
 
 const ResourceCard: React.FC<{
   title: string;
@@ -197,6 +201,9 @@ export const Dashboard: React.FC = () => {
         />
       </div>
       
+      {/* Progression Panel */}
+      <ProgressionPanel />
+      
       {/* Progress Bars */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="cyber-card space-y-4">
@@ -286,8 +293,28 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
       
-      {/* Quest System Test */}
-      <QuestSystemTest />
+      {/* Enhanced Narrative Quest System */}
+      <div className="bg-gray-800 rounded-lg p-6">
+        <NarrativeQuestSystem />
+      </div>
+
+      {/* Dynamic Quest Generator */}
+      <div className="bg-gray-800 rounded-lg p-6">
+        <QuestGenerator />
+      </div>
+
+      {/* Enhanced Quest System with Twists & Memorable Elements */}
+      <div className="bg-gray-800 rounded-lg p-6">
+        <EnhancedQuestSystem />
+      </div>
+
+      {/* Legacy Quest System (for debugging) */}
+      <details className="bg-gray-800 rounded-lg p-6">
+        <summary className="text-lg font-semibold text-green-400 cursor-pointer mb-4">
+          Legacy Quest System (Debug)
+        </summary>
+        <QuestSystemTest />
+      </details>
     </div>
   );
 };
