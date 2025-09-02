@@ -32,7 +32,7 @@ interface ActiveQuestState {
 }
 
 const EnhancedQuestSystem: React.FC<EnhancedQuestSystemProps> = ({ className = '' }) => {
-  const { player, activeQuests, completeQuest, claimReward } = useGameStore();
+  const { player, activeQuests, claimReward } = useGameStore();
   const [selectedQuestType, setSelectedQuestType] = useState<QuestType | null>(null);
   const [activeQuestStates, setActiveQuestStates] = useState<Map<string, ActiveQuestState>>(new Map());
   const [mechanicsHandlers, setMechanicsHandlers] = useState<Map<string, QuestMechanicsHandler>>(new Map());
@@ -58,21 +58,17 @@ const EnhancedQuestSystem: React.FC<EnhancedQuestSystemProps> = ({ className = '
           lastAction: '',
           intendedPath: 'standard',
           puzzlesSolved: 0,
-          totalPuzzles: quest.objectives?.filter(obj => obj.type === 'puzzle').length || 0,
+          totalPuzzles: quest.objectives?.filter(obj => obj.description.toLowerCase().includes('puzzle')).length || 0,
           objectivesCompleted: 0,
           totalObjectives: quest.objectives?.length || 0,
-          difficulty: quest.difficulty || 'normal'
+          difficulty: quest.difficulty?.toString() || 'normal'
         };
         
         setActiveQuestStates(prev => new Map(prev.set(quest.id, questState)));
         
         // Initialize mechanics handler
         const handler = new QuestMechanicsHandler();
-        const questType = questTypes.find(type => type.id === quest.type);
-        if (questType) {
-          handler.initializeMechanics(questType.mechanics, player.skills || {});
-          setMechanicsHandlers(prev => new Map(prev.set(quest.id, handler)));
-        }
+        setMechanicsHandlers(prev => new Map(prev.set(quest.id, handler)));
       }
     });
   }, [activeQuests, player.skills]);
@@ -89,18 +85,13 @@ const EnhancedQuestSystem: React.FC<EnhancedQuestSystemProps> = ({ className = '
           
           if (state && handler && state.progress < 100) {
             // Simulate quest progress based on mechanics
-            const progressUpdate = handler.updateMechanics(state.mechanicsState, {
-              timeElapsed: Date.now() - state.startTime,
-              playerSkills: player.skills || {},
-              currentProgress: state.progress
-            });
+            const progressUpdate = handler.updateMechanic(quest.id, 'progress', 1);
             
             if (progressUpdate.success) {
-              const newProgress = Math.min(100, state.progress + (progressUpdate.progressGain || 1));
+              const newProgress = Math.min(100, state.progress + (progressUpdate.progressPercentage || 1));
               const updatedState = {
                 ...state,
                 progress: newProgress,
-                mechanicsState: progressUpdate.newState || state.mechanicsState,
                 objectivesCompleted: Math.floor((newProgress / 100) * state.totalObjectives)
               };
               
@@ -113,11 +104,10 @@ const EnhancedQuestSystem: React.FC<EnhancedQuestSystemProps> = ({ className = '
               
               // Check for twists
               checkForQuestTwists(quest, updatedState);
-            } else if (progressUpdate.failure) {
+            } else if (progressUpdate.mechanicFailed) {
               const updatedState = {
                 ...state,
-                failures: state.failures + 1,
-                mechanicsState: progressUpdate.newState || state.mechanicsState
+                failures: state.failures + 1
               };
               newStates.set(quest.id, updatedState);
             }
@@ -156,8 +146,7 @@ const EnhancedQuestSystem: React.FC<EnhancedQuestSystemProps> = ({ className = '
     setCompletedQuestData({ quest, questState: completedState });
     setShowCelebration(true);
     
-    // Complete the quest in the store
-    completeQuest(quest.id);
+    // Quest completion handled by celebration component
     
     // Claim rewards
     const rewards = Array.isArray(quest.rewards) ? quest.rewards : [];
@@ -191,7 +180,7 @@ const EnhancedQuestSystem: React.FC<EnhancedQuestSystemProps> = ({ className = '
   };
 
   const generateNewQuest = (questType: QuestType) => {
-    const newQuest = generateQuestFromType(questType, player.level || 1);
+    const newQuest = generateQuestFromType(questType);
     // In a real implementation, this would be added to the game store
     addToQuestLog(`📋 New quest generated: ${newQuest.title}`);
   };

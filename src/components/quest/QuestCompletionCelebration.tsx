@@ -192,16 +192,16 @@ const QuestCompletionCelebration: React.FC<QuestCompletionCelebrationProps> = ({
                 <span className="text-2xl mr-3">{getRewardIcon(reward)}</span>
                 <div className="flex-1">
                   <div className="text-white font-medium">
-                    {reward.type === 'credits' && `${reward.value} Credits`}
-                    {reward.type === 'experience' && `${reward.value} XP`}
-                    {reward.type === 'reputation' && `+${reward.value} Rep`}
-                    {reward.type === 'skill_points' && `${reward.value} SP`}
-                    {reward.type === 'equipment' && reward.equipmentId}
-                    {reward.type === 'ability' && reward.abilityId}
+                    {reward.type === 'credits' && `${reward.amount} Credits`}
+                    {reward.type === 'experience' && `${reward.amount} XP`}
+                    {reward.type === 'reputation' && `+${reward.amount} Rep`}
+                    {reward.type === 'skill_points' && `${reward.amount} SP`}
+                    {reward.type === 'equipment' && reward.itemId}
+                    {reward.type === 'ability' && reward.itemId}
                     {reward.type === 'story_unlock' && 'Story Unlock'}
-                    {reward.type === 'achievement' && reward.achievementId}
-                    {reward.type === 'cosmetic' && reward.cosmeticId}
-                    {reward.type === 'title' && reward.titleId}
+                    {reward.type === 'achievement' && reward.itemId}
+                    {reward.type === 'cosmetic' && reward.itemId}
+                    {reward.type === 'title' && reward.title}
                     {reward.type === 'access_unlock' && 'Access Granted'}
                   </div>
                   {reward.description && (

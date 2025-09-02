@@ -151,14 +151,15 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   quest,
   onStart,
   onContinue,
-  showActions = true
+  showActions = true,
+  onMakeChoice
 }) => {
   const TypeIcon = getQuestTypeIcon(quest.type);
   const typeColor = getQuestTypeColor(quest.type);
   const difficultyInfo = getDifficultyInfo(quest.difficulty);
   const isCompleted = quest.status === 'completed';
   const isActive = quest.status === 'active';
-  const completedObjectives = quest.objectives.filter(obj => obj.completed).length;
+  const completedObjectives = quest.objectives.filter(obj => obj.isCompleted).length;
   const progressPercentage = (completedObjectives / quest.objectives.length) * 100;
 
   return (
@@ -223,13 +224,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
             <span className="capitalize">{quest.category}</span>
           </div>
 
-          {/* Estimated Time */}
-          {quest.estimatedTime && (
-            <div className="flex items-center gap-1 text-gray-400">
-              <Clock className="w-3 h-3" />
-              <span>{quest.estimatedTime}min</span>
-            </div>
-          )}
+          {/* Estimated Time - removed as not available in Quest interface */}
         </div>
 
         {/* Progress Bar (for active quests) */}
@@ -270,12 +265,12 @@ export const QuestCard: React.FC<QuestCardProps> = ({
             <div className="space-y-2">
               {quest.objectives.slice(0, 3).map((objective, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm">
-                  {objective.completed ? (
+                  {objective.isCompleted ? (
                     <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                   ) : (
                     <div className="w-4 h-4 border border-gray-600 rounded-full flex-shrink-0" />
                   )}
-                  <span className={objective.completed ? 'text-gray-400 line-through' : 'text-gray-300'}>
+                  <span className={objective.isCompleted ? 'text-gray-400 line-through' : 'text-gray-300'}>
                     {objective.description}
                   </span>
                 </div>

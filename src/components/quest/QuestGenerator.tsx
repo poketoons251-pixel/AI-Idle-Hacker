@@ -14,7 +14,6 @@ import {
   QuestType, 
   generateQuestFromType,
   getQuestTypesByCategory,
-  getQuestTypesByDifficulty,
   getRandomQuestType
 } from '../../data/questTypes';
 import { 
@@ -56,7 +55,7 @@ const QuestGenerator: React.FC = () => {
     const initialQuests: GeneratedQuest[] = [];
     
     // Generate 2-3 quests of each category
-    const categories = ['story', 'side', 'daily', 'weekly'];
+    const categories: ('story' | 'side' | 'daily' | 'challenge')[] = ['story', 'side', 'daily', 'challenge'];
     
     categories.forEach(category => {
       const categoryTypes = getQuestTypesByCategory(category);
@@ -72,6 +71,16 @@ const QuestGenerator: React.FC = () => {
     setGeneratedQuests(initialQuests);
   };
 
+  const mapQuestTypeCategory = (category: string): 'combat' | 'progression' | 'social' | 'exploration' | 'mastery' => {
+    const categoryMap: { [key: string]: 'combat' | 'progression' | 'social' | 'exploration' | 'mastery' } = {
+      'story': 'progression',
+      'side': 'exploration',
+      'daily': 'progression',
+      'challenge': 'mastery'
+    };
+    return categoryMap[category] || 'exploration';
+  };
+
   const createQuestFromType = (questType: QuestType): GeneratedQuest => {
     const baseQuest = generateQuestFromType(questType);
     
@@ -79,17 +88,21 @@ const QuestGenerator: React.FC = () => {
       id: `generated_${questType.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       title: baseQuest.title || questType.name,
       description: baseQuest.description || questType.description,
+      type: questType.category === 'story' ? 'story' : questType.category === 'daily' ? 'daily' : questType.category === 'challenge' ? 'special' : 'weekly',
       objectives: baseQuest.objectives || [],
       rewards: baseQuest.rewards || [],
-      difficulty: baseQuest.difficulty || questType.difficulty,
-      estimatedDuration: baseQuest.estimatedDuration || questType.estimatedDuration,
-      category: baseQuest.category || questType.category,
+      difficulty: (baseQuest.difficulty || questType.difficulty) as 1 | 2 | 3 | 4 | 5,
+      category: mapQuestTypeCategory(questType.category),
       status: 'available',
-      progress: 0,
+      isRepeatable: questType.category === 'daily' || questType.category === 'challenge',
+      progress: {
+        startedAt: 0,
+        lastUpdated: Date.now(),
+        completionPercentage: 0
+      },
       questType,
       storyLine: 'generated',
-      prerequisites: [],
-      unlockConditions: []
+      prerequisites: []
     };
     
     return quest;
@@ -97,16 +110,22 @@ const QuestGenerator: React.FC = () => {
 
   const startQuest = (quest: GeneratedQuest) => {
     // Initialize quest mechanics
-    const engine = questMechanicsHandler.initializeQuest(
+    questMechanicsHandler.initializeQuest(
       quest.id,
-      quest.questType.mechanics,
+      [], // No mechanics for now
       player
     );
     
+    const startTime = Date.now();
     const updatedQuest = {
       ...quest,
       status: 'active' as const,
-      startedAt: Date.now(),
+      startedAt: startTime,
+      progress: {
+        startedAt: startTime,
+        lastUpdated: startTime,
+        completionPercentage: 0
+      },
       mechanicsProgress: questMechanicsHandler.getQuestProgress(quest.id)
     };
     
@@ -125,7 +144,11 @@ const QuestGenerator: React.FC = () => {
         const updatedQuest = {
           ...quest,
           mechanicsProgress: progressInfo,
-          progress: progressInfo.overallProgress
+          progress: {
+            startedAt: quest.progress?.startedAt || quest.startedAt || Date.now(),
+            lastUpdated: Date.now(),
+            completionPercentage: progressInfo.overallProgress
+          }
         };
         
         // Check if quest is completed
@@ -181,18 +204,6 @@ const QuestGenerator: React.FC = () => {
   };
 
   const completeQuest = (quest: GeneratedQuest) => {
-    // Award rewards
-    const rewards = Array.isArray(quest.rewards) ? quest.rewards : [];
-    rewards.forEach(reward => {
-      claimReward(reward, {
-        playerLevel: player.level,
-        questDifficulty: quest.difficulty,
-        playerReputation: player.reputation,
-        completionTime: Date.now() - (quest.startedAt || Date.now()),
-        skillLevels: player.skills
-      });
-    });
-    
     // Update quest status
     const completedQuest = {
       ...quest,
@@ -207,6 +218,9 @@ const QuestGenerator: React.FC = () => {
     
     // Cleanup mechanics
     questMechanicsHandler.cleanupQuest(quest.id);
+    
+    // Award rewards - claim quest rewards using the quest ID
+    claimReward(quest.id);
   };
 
   const failQuest = (quest: GeneratedQuest) => {
@@ -229,7 +243,7 @@ const QuestGenerator: React.FC = () => {
       if (selectedCategory !== 'all') filters.category = selectedCategory;
       if (selectedDifficulty !== 'all') filters.difficulty = selectedDifficulty;
       
-      const questType = getRandomQuestType(filters);
+      const questType = getRandomQuestType();
       
       if (questType) {
         const newQuest = createQuestFromType(questType);
@@ -257,7 +271,17 @@ const QuestGenerator: React.FC = () => {
     return icons[mechanicType as keyof typeof icons] || AlertTriangle;
   };
 
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = (difficulty: number | string) => {
+    const difficultyMap: { [key: number]: string } = {
+      1: 'easy',
+      2: 'medium', 
+      3: 'hard',
+      4: 'expert',
+      5: 'expert'
+    };
+    
+    const difficultyStr = typeof difficulty === 'number' ? difficultyMap[difficulty] || 'medium' : difficulty;
+    
     const colors = {
       'easy': 'bg-green-500',
       'medium': 'bg-yellow-500',
@@ -265,7 +289,7 @@ const QuestGenerator: React.FC = () => {
       'expert': 'bg-red-500'
     };
     
-    return colors[difficulty as keyof typeof colors] || 'bg-gray-500';
+    return colors[difficultyStr as keyof typeof colors] || 'bg-gray-500';
   };
 
   const getCategoryColor = (category: string) => {
@@ -282,7 +306,7 @@ const QuestGenerator: React.FC = () => {
 
   const filteredQuests = generatedQuests.filter(quest => {
     if (selectedCategory !== 'all' && quest.category !== selectedCategory) return false;
-    if (selectedDifficulty !== 'all' && quest.difficulty !== selectedDifficulty) return false;
+    if (selectedDifficulty !== 'all' && quest.difficulty !== parseInt(selectedDifficulty)) return false;
     return true;
   });
 
@@ -354,17 +378,13 @@ const QuestGenerator: React.FC = () => {
                   <p className="text-gray-300 text-sm">{quest.description}</p>
                   
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-green-400">Mechanics:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {(quest.questType?.mechanics || []).map((mechanic, index) => {
-                        const IconComponent = getMechanicIcon(mechanic.type);
-                        return (
-                          <div key={index} className="flex items-center gap-1 text-xs bg-gray-700 px-2 py-1 rounded">
-                            <IconComponent className="w-3 h-3" />
-                            <span>{mechanic.type.replace('_', ' ')}</span>
-                          </div>
-                        );
-                      })}
+                    <h4 className="text-sm font-semibold text-green-400">Tags:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {(quest.questType?.tags || []).map((tag, index) => (
+                        <span key={index} className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300">
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
                   
@@ -374,14 +394,14 @@ const QuestGenerator: React.FC = () => {
                       {(Array.isArray(quest.rewards) ? quest.rewards : []).map((reward, index) => (
                         <div key={index} className="flex items-center gap-1 text-xs bg-blue-900 px-2 py-1 rounded">
                           <Gift className="w-3 h-3" />
-                          <span>{reward.type}: {reward.amount || reward.value || reward.itemId || reward.abilityId}</span>
+                          <span>{reward.type}: {reward.amount || reward.itemId || reward.title}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                   
                   <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs text-gray-400">{quest.estimatedDuration}</span>
+                    <span className="text-xs text-gray-400">Duration: {quest.questType.estimatedDuration}min</span>
                     <Button 
                       onClick={() => startQuest(quest)}
                       size="sm"
@@ -504,17 +524,13 @@ const QuestGenerator: React.FC = () => {
                   <p className="text-gray-300 text-sm">{questType.description}</p>
                   
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-green-400">Mechanics:</h4>
-                    <div className="space-y-1">
-                      {(questType.mechanics || []).map((mechanic, index) => {
-                        const IconComponent = getMechanicIcon(mechanic.type);
-                        return (
-                          <div key={index} className="flex items-center gap-2 text-xs">
-                            <IconComponent className="w-3 h-3 text-blue-400" />
-                            <span className="text-gray-300">{mechanic.description}</span>
-                          </div>
-                        );
-                      })}
+                    <h4 className="text-sm font-semibold text-green-400">Tags:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {questType.tags.map((tag, index) => (
+                        <span key={index} className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300">
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
                   

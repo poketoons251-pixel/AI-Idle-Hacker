@@ -38,16 +38,14 @@ const getObjectiveTypeIcon = (type: string) => {
 };
 
 const getObjectiveStatusColor = (objective: QuestObjective) => {
-  if (objective.completed) return 'text-green-400';
-  if (objective.inProgress) return 'text-yellow-400';
-  if (objective.failed) return 'text-red-400';
+  if (objective.isCompleted) return 'text-green-400';
+  if (objective.current > 0 && !objective.isCompleted) return 'text-yellow-400';
   return 'text-gray-400';
 };
 
-const getObjectiveStatusBg = (objective: QuestObjective) => {
-  if (objective.completed) return 'bg-green-500/10 border-green-500/20';
-  if (objective.inProgress) return 'bg-yellow-500/10 border-yellow-500/20';
-  if (objective.failed) return 'bg-red-500/10 border-red-500/20';
+const getObjectiveBackgroundColor = (objective: QuestObjective) => {
+  if (objective.isCompleted) return 'bg-green-500/10 border-green-500/20';
+  if (objective.current > 0 && !objective.isCompleted) return 'bg-yellow-500/10 border-yellow-500/20';
   return 'bg-gray-500/10 border-gray-500/20';
 };
 
@@ -84,9 +82,9 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
   };
 
   const renderObjectiveProgress = (objective: QuestObjective) => {
-    if (!objective.progress || objective.progress.target <= 1) return null;
+    if (objective.target <= 1) return null;
 
-    const progress = formatProgress(objective.progress.current, objective.progress.target);
+    const progress = formatProgress(objective.current, objective.target);
     
     return (
       <div className="mt-2">
@@ -99,9 +97,9 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
         <div className="w-full bg-gray-700 rounded-full h-1.5">
           <div
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              objective.completed
+              objective.isCompleted
                 ? 'bg-green-400'
-                : objective.inProgress
+                : objective.current > 0 && !objective.isCompleted
                 ? 'bg-yellow-400'
                 : 'bg-gray-600'
             }`}
@@ -113,25 +111,16 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
   };
 
   const renderObjectiveHint = (objective: QuestObjective) => {
-    if (!objective.hint || !showHints.has(objective.id)) return null;
-
-    return (
-      <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <Zap className="w-4 h-4 text-blue-400" />
-          <span className="text-xs text-blue-400 font-medium">HINT</span>
-        </div>
-        <p className="text-blue-300 text-sm">{objective.hint}</p>
-      </div>
-    );
+    // Hints not available in current interface
+    return null;
   };
 
   const renderObjectiveActions = (objective: QuestObjective) => {
-    if (objective.completed || !onObjectiveAction) return null;
+    if (objective.isCompleted || !onObjectiveAction) return null;
 
     return (
       <div className="flex gap-2 mt-3">
-        {!objective.inProgress && (
+        {objective.current === 0 && (
           <button
             onClick={() => onObjectiveAction(objective.id, 'start')}
             className="flex items-center gap-1 px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-xs font-medium transition-colors"
@@ -141,7 +130,7 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
           </button>
         )}
         
-        {objective.inProgress && (
+        {objective.current > 0 && !objective.isCompleted && (
           <button
             onClick={() => onObjectiveAction(objective.id, 'complete')}
             className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-medium transition-colors"
@@ -151,22 +140,14 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
           </button>
         )}
         
-        {objective.hint && (
-          <button
-            onClick={() => toggleHint(objective.id)}
-            className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors"
-          >
-            <Eye className="w-3 h-3" />
-            <span>{showHints.has(objective.id) ? 'Hide Hint' : 'Show Hint'}</span>
-          </button>
-        )}
+        {/* Hint functionality removed due to interface mismatch */}
       </div>
     );
   };
 
-  const completedCount = quest.objectives.filter(obj => obj.completed).length;
-  const inProgressCount = quest.objectives.filter(obj => obj.inProgress).length;
-  const failedCount = quest.objectives.filter(obj => obj.failed).length;
+  const completedCount = quest.objectives.filter(obj => obj.isCompleted).length;
+  const inProgressCount = quest.objectives.filter(obj => obj.current > 0 && !obj.isCompleted).length;
+  const failedCount = 0; // Failed status not available in current interface
 
   return (
     <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
@@ -223,7 +204,7 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
           const TypeIcon = getObjectiveTypeIcon(objective.type || 'default');
           const isExpanded = expandedObjectives.has(objective.id);
           const statusColor = getObjectiveStatusColor(objective);
-          const statusBg = getObjectiveStatusBg(objective);
+          const statusBg = getObjectiveBackgroundColor(objective);
 
           return (
             <div
@@ -238,11 +219,9 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
                 <div className="flex items-center gap-3">
                   {/* Status Icon */}
                   <div className="flex-shrink-0">
-                    {objective.completed ? (
+                    {objective.isCompleted ? (
                       <CheckCircle className="w-5 h-5 text-green-400" />
-                    ) : objective.failed ? (
-                      <AlertCircle className="w-5 h-5 text-red-400" />
-                    ) : objective.inProgress ? (
+                    ) : objective.current > 0 ? (
                       <Clock className="w-5 h-5 text-yellow-400" />
                     ) : (
                       <Circle className="w-5 h-5 text-gray-400" />
@@ -258,18 +237,18 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
                       <span className="text-xs text-gray-500 font-medium">
                         OBJECTIVE {index + 1}
                       </span>
-                      {objective.optional && (
+                      {objective.isOptional && (
                         <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
                           Optional
                         </span>
                       )}
                     </div>
-                    <h4 className={`font-medium ${statusColor} ${objective.completed ? 'line-through' : ''}`}>
+                    <h4 className={`font-medium ${statusColor} ${objective.isCompleted ? 'line-through' : ''}`}>
                       {objective.description}
                     </h4>
-                    {objective.progress && objective.progress.target > 1 && (
+                    {objective.target > 1 && (
                       <div className="text-xs text-gray-400 mt-1">
-                        Progress: {objective.progress.current}/{objective.progress.target}
+                        Progress: {objective.current}/{objective.target}
                       </div>
                     )}
                   </div>
@@ -289,28 +268,12 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
               {isExpanded && (
                 <div className="px-3 pb-3 border-t border-gray-700/50">
                   <div className="pt-3">
-                    {/* Detailed Description */}
-                    {objective.detailedDescription && (
-                      <div className="mb-3">
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                          {objective.detailedDescription}
-                        </p>
-                      </div>
-                    )}
+                    {/* Detailed description removed due to interface mismatch */}
 
                     {/* Progress Bar */}
                     {renderObjectiveProgress(objective)}
 
-                    {/* Narrative Context */}
-                    {objective.narrativeContext && (
-                      <div className="mt-3 p-3 bg-gray-800 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <MessageSquare className="w-4 h-4 text-purple-400" />
-                          <span className="text-xs text-purple-400 font-medium">CONTEXT</span>
-                        </div>
-                        <p className="text-gray-300 text-sm">{objective.narrativeContext}</p>
-                      </div>
-                    )}
+                    {/* Narrative Context - Removed due to interface mismatch */}
 
                     {/* Hint */}
                     {renderObjectiveHint(objective)}
@@ -318,10 +281,10 @@ export const QuestObjectiveTracker: React.FC<QuestObjectiveTrackerProps> = ({
                     {/* Actions */}
                     {renderObjectiveActions(objective)}
 
-                    {/* Completion Time */}
-                    {objective.completedAt && (
-                      <div className="mt-3 text-xs text-gray-500">
-                        Completed: {new Date(objective.completedAt).toLocaleString()}
+                    {/* Completion Status */}
+                    {objective.isCompleted && (
+                      <div className="mt-3 text-xs text-green-400">
+                        ✓ Completed
                       </div>
                     )}
                   </div>

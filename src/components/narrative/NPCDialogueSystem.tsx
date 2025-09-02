@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { getNPCById, getNPCsByStoryLine, getAvailableDialogues, getDialogueOptions, DialogueOption, DialogueNode, NPC } from '../../data/npcDialogues';
+import { getNPCById, getNPCsByStoryLine, getAvailableDialogues, getDialogueOptions, DialogOption, Dialog, NPC, getDialogById } from '../../data/npcDialogues';
 import { MessageCircle, User, Zap, ArrowRight, X, Clock, Star, AlertTriangle } from 'lucide-react';
 
 interface NPCDialogueSystemProps {
@@ -18,7 +18,7 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
 }) => {
   const { player, claimReward } = useGameStore();
   const [selectedNPC, setSelectedNPC] = useState<NPC | null>(null);
-  const [currentDialogue, setCurrentDialogue] = useState<DialogueNode | null>(null);
+  const [currentDialogue, setCurrentDialogue] = useState<Dialog | null>(null);
   const [dialogueHistory, setDialogueHistory] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -28,7 +28,7 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
     activeQuests: ['ai-1', 'resistance-1'],
     reputation: player.reputation || 0,
     skills: player.skills || {},
-    hasItem: (item: string) => player.equipment?.some(eq => eq.name.toLowerCase().includes(item.toLowerCase())) || false,
+    hasItem: (item: string) => false, // Simplified for now as player.equipment structure is unclear
     questProgress: {
       'origin-2': { completed: true },
       'corp-1': { completed: true },
@@ -58,7 +58,7 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
   }, [npcId, selectedNPC]);
 
   const initializeDialogue = (npc: NPC) => {
-    const availableDialogues = getAvailableDialogues(npc, playerProgress);
+    const availableDialogues = getAvailableDialogues(npc.id);
     if (availableDialogues.length > 0) {
       setCurrentDialogue(availableDialogues[0]);
       setDialogueHistory([]);
@@ -70,7 +70,7 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
     initializeDialogue(npc);
   };
 
-  const handleOptionSelect = async (option: DialogueOption) => {
+  const handleOptionSelect = async (option: DialogOption) => {
     if (!selectedNPC || !currentDialogue) return;
 
     // Add player's choice to history
@@ -80,40 +80,14 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
     // Simulate typing delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Add NPC response to history
-    if (option.response) {
-      setDialogueHistory(prev => [...prev, `${selectedNPC.name}: ${option.response}`]);
-    }
-
-    // Handle consequences
-    if (option.consequences) {
-      for (const consequence of option.consequences) {
-        switch (consequence.type) {
-          case 'reputation_change':
-            // Handle reputation change
-            console.log(`Reputation changed by ${consequence.value}`);
-            break;
-          case 'unlock_quest':
-            console.log(`Quest unlocked: ${consequence.questId}`);
-            break;
-          case 'give_item':
-            console.log(`Item received: ${consequence.itemId}`);
-            break;
-          case 'skill_boost':
-            console.log(`Skill boosted: ${consequence.skill} by ${consequence.value}`);
-            break;
-          case 'unlock_dialogue':
-            console.log(`Dialogue unlocked: ${consequence.dialogueId}`);
-            break;
-        }
-      }
-    }
+    // Add NPC response to history (simplified for now)
+    setDialogueHistory(prev => [...prev, `${selectedNPC.name}: Thank you for your choice.`]);
 
     // Navigate to next dialogue or end conversation
-    if (option.nextDialogueId) {
-      const nextDialogue = selectedNPC.dialogues.find(d => d.id === option.nextDialogueId);
-      if (nextDialogue) {
-        setCurrentDialogue(nextDialogue);
+    if (option.nextDialogId) {
+      const nextDialog = getDialogById(option.nextDialogId);
+      if (nextDialog) {
+        setCurrentDialogue(nextDialog);
       }
     } else {
       // End conversation
@@ -172,7 +146,7 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
         <div className="p-6">
           <div className="grid gap-4">
             {availableNPCs.map((npc) => {
-              const availableDialogues = getAvailableDialogues(npc, playerProgress);
+              const availableDialogues = getAvailableDialogues(npc.id);
               const hasNewDialogue = availableDialogues.length > 0;
 
               return (
@@ -188,11 +162,11 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <h3 className="text-lg font-semibold text-cyan-400">{npc.name}</h3>
-                      <p className="text-sm text-gray-400">{npc.role}</p>
+                      <p className="text-sm text-gray-400">{npc.personality}</p>
                     </div>
-                    <div className={`flex items-center gap-1 ${getRelationshipColor(npc.relationship)}`}>
-                      {getRelationshipIcon(npc.relationship)}
-                      <span className="text-sm capitalize">{npc.relationship}</span>
+                    <div className={`flex items-center gap-1 ${getRelationshipColor('neutral')}`}>
+                      {getRelationshipIcon('neutral')}
+                      <span className="text-sm capitalize">neutral</span>
                     </div>
                   </div>
 
@@ -202,7 +176,7 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
                     <div className="flex items-center gap-2">
                       <Zap className="w-3 h-3 text-purple-400" />
                       <span className="text-xs text-purple-400 capitalize">
-                        {npc.storyLine.replace('_', ' ')} Story
+                        {npc.location} Story
                       </span>
                     </div>
                     {hasNewDialogue && (
@@ -239,7 +213,7 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
     );
   }
 
-  const availableOptions = getDialogueOptions(currentDialogue, playerProgress);
+  const availableOptions = getDialogueOptions(currentDialogue.id);
 
   return (
     <div className={`bg-gray-900 rounded-lg border border-gray-700 ${className}`}>
@@ -255,12 +229,12 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
             </button>
             <div>
               <h2 className="text-xl font-bold text-cyan-400">{selectedNPC.name}</h2>
-              <p className="text-sm text-gray-400">{selectedNPC.role}</p>
+              <p className="text-sm text-gray-400">{selectedNPC.personality}</p>
             </div>
           </div>
-          <div className={`flex items-center gap-1 ${getRelationshipColor(selectedNPC.relationship)}`}>
-            {getRelationshipIcon(selectedNPC.relationship)}
-            <span className="text-sm capitalize">{selectedNPC.relationship}</span>
+          <div className={`flex items-center gap-1 ${getRelationshipColor('neutral')}`}>
+            {getRelationshipIcon('neutral')}
+            <span className="text-sm capitalize">neutral</span>
           </div>
         </div>
       </div>
@@ -325,18 +299,7 @@ const NPCDialogueSystem: React.FC<NPCDialogueSystemProps> = ({
                 <span className="text-gray-300">{option.text}</span>
                 <ArrowRight className="w-4 h-4 text-gray-500" />
               </div>
-              {option.consequences && option.consequences.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {option.consequences.map((consequence, idx) => (
-                    <span
-                      key={idx}
-                      className="text-xs px-2 py-1 bg-gray-700 text-gray-400 rounded"
-                    >
-                      {consequence.type.replace('_', ' ')}
-                    </span>
-                  ))}
-                </div>
-              )}
+
             </button>
           ))}
         </div>

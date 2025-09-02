@@ -55,16 +55,14 @@ const QuestChoiceDialog: React.FC<QuestChoiceDialogProps> = ({
   const canMakeChoice = (choice: QuestChoice): boolean => {
     if (!choice.requirements || !playerStats) return true;
     
-    return choice.requirements.every(req => {
-      switch (req.type) {
+    return Object.entries(choice.requirements).every(([key, value]) => {
+      switch (key) {
         case 'level':
-          return playerStats.level >= req.value;
-        case 'credits':
-          return playerStats.credits >= req.value;
+          return playerStats.level >= (value as number);
         case 'reputation':
-          return playerStats.reputation >= req.value;
+          return playerStats.reputation >= (value as number);
         case 'skill':
-          return playerStats.skills[req.skill || ''] >= req.value;
+          return playerStats.skills[value as string] >= (choice.requirements?.level || 1);
         default:
           return true;
       }
@@ -73,23 +71,23 @@ const QuestChoiceDialog: React.FC<QuestChoiceDialogProps> = ({
 
   const getConsequenceIcon = (consequence: QuestConsequence) => {
     switch (consequence.type) {
-      case 'credits': return Zap;
-      case 'experience': return TrendingUp;
       case 'reputation': return Users;
       case 'skill': return Target;
-      case 'health': return Shield;
+      case 'unlock_quest': return CheckCircle;
+      case 'unlock_target': return Target;
+      case 'story_branch': return GitBranch;
       default: return CheckCircle;
     }
   };
 
   const getConsequenceColor = (consequence: QuestConsequence) => {
-    const isPositive = consequence.value > 0;
+    const isPositive = typeof consequence.value === 'number' ? consequence.value > 0 : true;
     switch (consequence.type) {
-      case 'credits': return isPositive ? 'text-yellow-400' : 'text-red-400';
-      case 'experience': return isPositive ? 'text-blue-400' : 'text-red-400';
       case 'reputation': return isPositive ? 'text-green-400' : 'text-red-400';
       case 'skill': return isPositive ? 'text-purple-400' : 'text-red-400';
-      case 'health': return isPositive ? 'text-green-400' : 'text-red-400';
+      case 'unlock_quest': return 'text-blue-400';
+      case 'unlock_target': return 'text-yellow-400';
+      case 'story_branch': return 'text-cyan-400';
       default: return 'text-gray-400';
     }
   };
@@ -187,20 +185,19 @@ const QuestChoiceDialog: React.FC<QuestChoiceDialogProps> = ({
                   </p>
 
                   {/* Requirements */}
-                  {choice.requirements && choice.requirements.length > 0 && (
+                  {choice.requirements && Object.keys(choice.requirements).length > 0 && (
                     <div className="mb-3">
                       <div className="flex items-center gap-1 mb-2">
                         <AlertTriangle className="w-3 h-3 text-amber-400" />
                         <span className="text-xs text-amber-400 font-medium">REQUIREMENTS</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {choice.requirements.map((req, reqIndex) => {
+                        {Object.entries(choice.requirements).map(([key, value], reqIndex) => {
                           const isMet = playerStats ? (() => {
-                            switch (req.type) {
-                              case 'level': return playerStats.level >= req.value;
-                              case 'credits': return playerStats.credits >= req.value;
-                              case 'reputation': return playerStats.reputation >= req.value;
-                              case 'skill': return playerStats.skills[req.skill || ''] >= req.value;
+                            switch (key) {
+                              case 'level': return playerStats.level >= (value as number);
+                              case 'reputation': return playerStats.reputation >= (value as number);
+                              case 'skill': return playerStats.skills[value as string] >= (choice.requirements?.level || 1);
                               default: return true;
                             }
                           })() : false;
@@ -214,7 +211,7 @@ const QuestChoiceDialog: React.FC<QuestChoiceDialogProps> = ({
                                   : 'bg-red-500/20 text-red-400'
                               }`}
                             >
-                              {req.type === 'skill' ? `${req.skill} ${req.value}+` : `${req.type} ${req.value}+`}
+                              {key === 'skill' ? `${value} skill` : `${key} ${value}+`}
                             </span>
                           );
                         })}

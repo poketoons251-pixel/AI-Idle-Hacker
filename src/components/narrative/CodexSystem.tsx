@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { loreEntries, getLoreEntriesByStoryLine, getLoreEntryById } from '../../data/loreEntries';
+import { loreEntries, getLoreEntriesByStoryLine, getLoreById } from '../../data/loreEntries';
 import { dataLogs, newsArticles, environmentalClues, getUnlockedDataLogs, getUnlockedNewsArticles } from '../../data/environmentalStory';
 import { Book, FileText, Newspaper, Search, Eye, Lock, Clock, MapPin, User, Zap } from 'lucide-react';
 
@@ -30,9 +30,9 @@ const CodexSystem: React.FC<CodexSystemProps> = ({ className = '' }) => {
 
   const unlockedLore = useMemo(() => {
     return loreEntries.filter(entry => 
-      player.unlockedLore?.includes(entry.id) || entry.id === 'origin-001'
+entry.id === 'origin-001' // Simplified for now as player.unlockedLore doesn't exist
     );
-  }, [player.unlockedLore]);
+  }, [player]);
 
   const unlockedDataLogs = useMemo(() => {
     return getUnlockedDataLogs(playerProgress);

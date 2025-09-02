@@ -10,14 +10,14 @@ const testQuest: Quest = {
   title: 'Digital Awakening - Phase 2 Test',
   description: 'Experience the enhanced quest system with narrative elements, story progression, and dynamic mechanics.',
   type: 'story',
-  category: 'main',
+  category: 'progression',
   difficulty: 2,
   storyLine: 'origin',
   objectives: [
     {
       id: 'obj-1',
       description: 'Complete your first hack using enhanced mechanics',
-      type: 'hack_complete',
+      type: 'operation_complete',
       target: 1,
       current: 0,
       isCompleted: false,
@@ -45,16 +45,22 @@ const testQuest: Quest = {
       scalingFactor: 1.1,
     },
     {
-      type: 'story_branch',
-      value: 'origin_awakening',
-      title: 'The First Step',
-      description: 'Your journey into the digital underground begins.',
+      type: 'story_unlock',
+      amount: 1,
+      itemId: 'origin_awakening',
+      data: {
+        title: 'The First Step',
+        description: 'Your journey into the digital underground begins.'
+      }
     },
     {
       type: 'achievement',
-      achievementId: 'phase2_tester',
-      title: 'Phase 2 Pioneer',
-      description: 'Successfully tested the enhanced quest system.',
+      amount: 1,
+      itemId: 'phase2_tester',
+      data: {
+        title: 'Phase 2 Pioneer',
+        description: 'Successfully tested the enhanced quest system.'
+      }
     },
   ],
   prerequisites: [

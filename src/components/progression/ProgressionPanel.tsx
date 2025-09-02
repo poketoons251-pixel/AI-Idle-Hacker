@@ -9,7 +9,7 @@ interface ProgressionPanelProps {
 export const ProgressionPanel: React.FC<ProgressionPanelProps> = ({ className = '' }) => {
   const { player, achievements, loreEntries } = useGameStore();
 
-  const unlockedAchievements = achievements.filter(a => a.isUnlocked);
+  const unlockedAchievements = achievements.filter(a => a.unlocked);
   const unlockedLore = loreEntries.filter(l => l.isUnlocked);
   const playerAbilities = player.abilities || [];
   const playerTitles = player.titles || [];
@@ -63,7 +63,7 @@ export const ProgressionPanel: React.FC<ProgressionPanelProps> = ({ className = 
                 <div key={achievement.id} className="flex items-start gap-2">
                   <Trophy className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <div className="text-sm font-medium text-white">{achievement.title}</div>
+                    <div className="text-sm font-medium text-white">{achievement.name}</div>
                     <div className="text-xs text-gray-400">{achievement.description}</div>
                   </div>
                 </div>

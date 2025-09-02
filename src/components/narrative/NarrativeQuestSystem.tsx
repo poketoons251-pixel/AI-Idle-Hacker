@@ -29,7 +29,7 @@ type ViewMode = 'overview' | 'quest_details' | 'npc_dialogue' | 'codex';
 type StoryLine = 'origin' | 'corporate' | 'ai_liberation' | 'resistance' | 'deep_web';
 
 const NarrativeQuestSystem: React.FC<NarrativeQuestSystemProps> = ({ className = '' }) => {
-  const { player, quests, startQuest, completeQuest } = useGameStore();
+  const { player, quests, startQuest } = useGameStore();
   const [viewMode, setViewMode] = useState<ViewMode>('overview');
   const [selectedStoryLine, setSelectedStoryLine] = useState<StoryLine>('origin');
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
@@ -53,7 +53,7 @@ const NarrativeQuestSystem: React.FC<NarrativeQuestSystemProps> = ({ className =
   ];
 
   const availableQuests = useMemo(() => {
-    return getAvailableQuests(playerProgress);
+    return getAvailableQuests(playerProgress.completedQuests, playerProgress.level, playerProgress.skills, playerProgress.reputation);
   }, [playerProgress]);
 
   const storyLineQuests = useMemo(() => {
@@ -219,11 +219,7 @@ const NarrativeQuestSystem: React.FC<NarrativeQuestSystemProps> = ({ className =
                       </span>
                     </div>
                     <p className="text-gray-400 text-sm mb-2">{quest.description}</p>
-                    {quest.narrative?.introduction && (
-                      <p className="text-gray-500 text-xs italic">
-                        "{quest.narrative.introduction.substring(0, 100)}..."
-                      </p>
-                    )}
+                    {/* Quest introduction would go here if quest had narrative property */}
                   </div>
                   {isClickable && (
                     <ChevronRight className="w-5 h-5 text-gray-500" />
@@ -236,12 +232,7 @@ const NarrativeQuestSystem: React.FC<NarrativeQuestSystemProps> = ({ className =
                     <Award className="w-3 h-3" />
                     <span>{Array.isArray(quest.rewards) ? quest.rewards.length : 0} rewards</span>
                   </div>
-                  {quest.estimatedDuration && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{quest.estimatedDuration}</span>
-                    </div>
-                  )}
+                  {/* Estimated duration would go here if quest had this property */}
                   {quest.difficulty && (
                     <div className="flex items-center gap-1">
                       <Zap className="w-3 h-3" />
@@ -311,14 +302,7 @@ const NarrativeQuestSystem: React.FC<NarrativeQuestSystemProps> = ({ className =
           <div className="prose prose-invert max-w-none">
             <p className="text-gray-300 mb-4">{quest.description}</p>
             
-            {quest.narrative?.introduction && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-cyan-400 mb-2">Mission Brief</h3>
-                <div className="bg-gray-700 p-4 rounded-lg border-l-4 border-cyan-500">
-                  <p className="text-gray-300">{quest.narrative.introduction}</p>
-                </div>
-              </div>
-            )}
+            {/* Quest narrative introduction would go here if quest had narrative property */}
 
             {quest.objectives && quest.objectives.length > 0 && (
               <div className="mb-6">
@@ -347,9 +331,9 @@ const NarrativeQuestSystem: React.FC<NarrativeQuestSystemProps> = ({ className =
                         </span>
                       </div>
                       <p className="text-sm text-gray-400 mt-1">
-                        {reward.value} {reward.type === 'credits' ? 'credits' : ''}
+                        {reward.amount} {reward.type === 'credits' ? 'credits' : ''}
                         {reward.type === 'experience' ? 'XP' : ''}
-                        {reward.itemId || reward.abilityId || reward.titleId || ''}
+                        {reward.itemId || reward.title || ''}
                       </p>
                     </div>
                   ))}
@@ -357,14 +341,7 @@ const NarrativeQuestSystem: React.FC<NarrativeQuestSystemProps> = ({ className =
               </div>
             )}
 
-            {quest.narrative?.worldBuilding && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-cyan-400 mb-2">Background</h3>
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <p className="text-gray-300">{quest.narrative.worldBuilding}</p>
-                </div>
-              </div>
-            )}
+            {/* World building content would go here if quest had narrative property */}
           </div>
         </div>
       </div>
@@ -394,7 +371,7 @@ const NarrativeQuestSystem: React.FC<NarrativeQuestSystemProps> = ({ className =
           />
         )}
         {viewMode === 'codex' && (
-          <CodexSystem onClose={() => setViewMode('overview')} />
+          <CodexSystem />
         )}
       </div>
     </div>
