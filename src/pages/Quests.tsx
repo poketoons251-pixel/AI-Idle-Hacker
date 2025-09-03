@@ -24,8 +24,11 @@ import { LorePanel } from '../components/quests/LorePanel';
 import { QuestObjectiveTracker } from '../components/quests/QuestObjectiveTracker';
 import { LoreViewer } from '../components/quests/LoreViewer';
 import { QuestChoiceDialog } from '../components/quests/QuestChoiceDialog';
+import { StoryQuestIntegration } from '../components/story/StoryQuestIntegration';
+import InvestigationPanel from '../components/investigation/InvestigationPanel';
+import PartnerCoordinationHub from '../components/partners/PartnerCoordinationHub';
 
-type QuestTab = 'story' | 'active' | 'completed' | 'daily' | 'achievements';
+type QuestTab = 'story' | 'investigation' | 'partners' | 'active' | 'completed' | 'daily' | 'achievements';
 
 interface StoryLine {
   id: string;
@@ -149,6 +152,8 @@ export const Quests: React.FC = () => {
 
   const tabs = [
     { id: 'story' as QuestTab, name: 'Story Campaigns', icon: BookOpen, count: storyLines.length },
+    { id: 'investigation' as QuestTab, name: 'Intelligence', icon: Brain, count: 0 },
+    { id: 'partners' as QuestTab, name: 'Partners', icon: Users, count: 0 },
     { id: 'active' as QuestTab, name: 'Active Quests', icon: Target, count: activeQuests.length },
     { id: 'completed' as QuestTab, name: 'Completed', icon: CheckCircle, count: completedQuests.length },
     { id: 'daily' as QuestTab, name: 'Daily Challenges', icon: Clock, count: 3 },
@@ -156,6 +161,34 @@ export const Quests: React.FC = () => {
   ];
 
   const renderStoryTab = () => (
+    <StoryQuestIntegration />
+  );
+
+  const renderInvestigationTab = () => (
+    <InvestigationPanel 
+      availableDocs={[]}
+      activeInvestigations={[]}
+      onStartInvestigation={async (docId: string) => {}}
+      onViewReport={async (reportId: string) => {}}
+      playerLevel={player.level}
+      playerReputation={player.reputation || 0}
+    />
+  );
+
+  const renderPartnersTab = () => (
+    <PartnerCoordinationHub 
+      partners={[]}
+      relationships={[]}
+      availableMissions={[]}
+      activeMissions={[]}
+      onStartMission={async () => {}}
+      onSendMessage={async () => {}}
+      onImproveRelationship={async () => {}}
+      isLoading={false}
+    />
+  );
+
+  const renderLegacyStoryTab = () => (
     <div className="space-y-6">
       {/* Story Lines Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -370,6 +403,8 @@ export const Quests: React.FC = () => {
         {/* Tab Content */}
         <div className="mb-8">
           {activeTab === 'story' && renderStoryTab()}
+          {activeTab === 'investigation' && renderInvestigationTab()}
+          {activeTab === 'partners' && renderPartnersTab()}
           {activeTab === 'active' && renderActiveTab()}
           {activeTab === 'completed' && renderCompletedTab()}
           {activeTab === 'daily' && renderDailyTab()}

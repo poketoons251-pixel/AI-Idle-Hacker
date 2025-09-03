@@ -48,16 +48,21 @@ function getExperienceRequired(level: number): number {
 
 // Calculate energy regeneration rate (energy per second)
 function getEnergyRegenRate(level: number, equipmentBonus: number): number {
-  const baseRegen = 1; // 1 energy per second
-  const levelBonus = level * 0.1;
-  return baseRegen + levelBonus + equipmentBonus;
+  const baseRegen = 1.2; // Increased base regeneration
+  const levelBonus = level * 0.12; // Improved level scaling
+  const equipmentMultiplier = 1 + (equipmentBonus * 0.8); // Better equipment scaling
+  return (baseRegen + levelBonus) * equipmentMultiplier;
 }
 
 // Calculate idle credit generation rate
 function getIdleCreditRate(skills: any, equipmentBonus: number): number {
-  const baseRate = 0.5; // 0.5 credits per second
-  const skillBonus = (skills.hacking + skills.networking) * 0.1;
-  return baseRate + skillBonus + equipmentBonus;
+  const baseRate = 0.65; // Increased base rate for better progression
+  const hackingBonus = skills.hacking * 0.12; // Enhanced hacking skill impact
+  const networkingBonus = skills.networking * 0.08; // Networking skill bonus
+  const stealthBonus = skills.stealth * 0.06; // Additional stealth bonus
+  const equipmentMultiplier = 1 + (equipmentBonus * 0.6); // Equipment scaling
+  
+  return (baseRate + hackingBonus + networkingBonus + stealthBonus) * equipmentMultiplier;
 }
 
 // Calculate operation completion and rewards
@@ -77,12 +82,14 @@ function processOperations(
       // Operation completed
       completedOperations.push(operation.id);
       
-      // Calculate rewards with bonuses
-      const skillMultiplier = 1 + (skills[operation.type] || 0) * 0.1;
-      const equipmentMultiplier = 1 + equipmentBonus;
+      // Calculate rewards with enhanced bonuses
+      const skillMultiplier = 1 + (skills[operation.type] || 0) * 0.15; // Increased skill impact
+      const equipmentMultiplier = 1 + (equipmentBonus * 1.2); // Better equipment scaling
+      const difficultyBonus = 1 + ((operation.difficulty || 1) * 0.25); // Difficulty rewards
       
-      const credits = Math.floor(operation.baseReward * skillMultiplier * equipmentMultiplier);
-      const experience = Math.floor(operation.baseReward * 0.5 * skillMultiplier);
+      const totalMultiplier = skillMultiplier * equipmentMultiplier * difficultyBonus;
+      const credits = Math.floor(operation.baseReward * totalMultiplier);
+      const experience = Math.floor(operation.baseReward * 0.6 * skillMultiplier); // Increased XP rate
       
       totalCredits += credits;
       totalExperience += experience;
@@ -103,13 +110,25 @@ function calculateIdleRewards(data: IdleCalculationData): IdleRewards {
   // Cap offline time to prevent exploitation (max 24 hours)
   const cappedOfflineTime = Math.min(timeOffline, 24 * 60 * 60);
   
-  // Calculate equipment bonuses
-  const equipmentBonus = (
+  // Calculate equipment bonuses with synergy effects
+  const rawEquipmentBonus = (
     data.equipment.laptop.bonus +
     data.equipment.software.bonus +
     data.equipment.hardware.bonus +
     data.equipment.network.bonus
   ) / 100; // Convert percentage to decimal
+  
+  // Add synergy bonus for having multiple high-level equipment
+  const equipmentLevels = [
+    data.equipment.laptop.level,
+    data.equipment.software.level,
+    data.equipment.hardware.level,
+    data.equipment.network.level
+  ];
+  const averageLevel = equipmentLevels.reduce((sum, level) => sum + level, 0) / 4;
+  const synergyBonus = Math.min(0.5, averageLevel * 0.02); // Max 50% synergy bonus
+  
+  const equipmentBonus = rawEquipmentBonus * (1 + synergyBonus);
   
   // Process completed operations
   const operationResults = processOperations(

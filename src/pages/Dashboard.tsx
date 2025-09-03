@@ -12,11 +12,12 @@ import {
   Activity
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-import { QuestSystemTest } from '../components/QuestSystemTest';
 import { ProgressionPanel } from '../components/progression/ProgressionPanel';
-import NarrativeQuestSystem from '../components/narrative/NarrativeQuestSystem';
-import QuestGenerator from '../components/quest/QuestGenerator';
 import EnhancedQuestSystem from '../components/quest/EnhancedQuestSystem';
+import NarrativeQuestSystem from '../components/narrative/NarrativeQuestSystem';
+import DynamicQuestGenerator from '../components/quest/QuestGenerator';
+import { IdleOptimizationSystem } from '../components/IdleOptimizationSystem';
+import { Phase3Integration } from '../components/Phase3Integration';
 
 const ResourceCard: React.FC<{
   title: string;
@@ -300,7 +301,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Dynamic Quest Generator */}
       <div className="bg-gray-800 rounded-lg p-6">
-        <QuestGenerator />
+        <DynamicQuestGenerator />
       </div>
 
       {/* Enhanced Quest System with Twists & Memorable Elements */}
@@ -308,13 +309,10 @@ export const Dashboard: React.FC = () => {
         <EnhancedQuestSystem />
       </div>
 
-      {/* Legacy Quest System (for debugging) */}
-      <details className="bg-gray-800 rounded-lg p-6">
-        <summary className="text-lg font-semibold text-green-400 cursor-pointer mb-4">
-          Legacy Quest System (Debug)
-        </summary>
-        <QuestSystemTest />
-      </details>
+      {/* Phase 3: Enhanced Experience Integration */}
+      <Phase3Integration className="col-span-1 lg:col-span-2" />
+
+
     </div>
   );
 };

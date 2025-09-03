@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Target, 
   Shield, 
@@ -18,6 +18,8 @@ import {
   Skull
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
+import TerminalInterface from '../components/TerminalInterface';
+import HackingTechniqueSelector from '../components/HackingTechniqueSelector';
 
 const operationTypes = [
   {
@@ -402,6 +404,65 @@ const TargetCard: React.FC<{ target: any }> = ({ target }) => {
 
 export const Operations: React.FC = () => {
   const { targets, operations, player } = useGameStore();
+  const [hackingTechniques, setHackingTechniques] = useState([]);
+  const [selectedTechnique, setSelectedTechnique] = useState(null);
+  const [isExecutingHack, setIsExecutingHack] = useState(false);
+  const [showAdvancedHacking, setShowAdvancedHacking] = useState(false);
+
+  // Fetch hacking techniques on component mount
+  useEffect(() => {
+    const fetchTechniques = async () => {
+      try {
+        const response = await fetch('/api/hacking/techniques');
+        if (response.ok) {
+          const data = await response.json();
+          setHackingTechniques(data.techniques || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch hacking techniques:', error);
+      }
+    };
+
+    fetchTechniques();
+  }, []);
+
+  const handleTechniqueSelect = (technique: any) => {
+    setSelectedTechnique(technique);
+  };
+
+  const handleExecuteHack = async (technique: any, target?: string) => {
+    setIsExecutingHack(true);
+    
+    try {
+      const response = await fetch('/api/hacking/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          technique_id: technique.id,
+          target_info: target || 'default_target',
+          player_id: player.id
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        // Handle successful hack execution
+        console.log('Hack executed successfully:', result);
+      }
+    } catch (error) {
+      console.error('Failed to execute hack:', error);
+    } finally {
+      setIsExecutingHack(false);
+    }
+  };
+
+  const handleTerminalCommand = (command: string) => {
+    if (command.toLowerCase().startsWith('exploit')) {
+      setShowAdvancedHacking(true);
+    }
+  };
   
   console.log('🎯 Operations Component: Store data:', {
     targets,
@@ -508,6 +569,41 @@ export const Operations: React.FC = () => {
         </div>
       </div>
       
+      {/* Advanced Hacking System */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-cyber font-bold text-cyber-primary flex items-center space-x-2">
+            <Terminal className="w-6 h-6" />
+            <span>Advanced Hacking Terminal</span>
+          </h2>
+          <button
+            onClick={() => setShowAdvancedHacking(!showAdvancedHacking)}
+            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+          >
+            {showAdvancedHacking ? 'Hide Terminal' : 'Show Terminal'}
+          </button>
+        </div>
+        
+        {showAdvancedHacking && (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <TerminalInterface 
+              onCommandExecute={handleTerminalCommand}
+              isExecuting={isExecutingHack}
+              className="h-full"
+            />
+            <HackingTechniqueSelector
+              techniques={hackingTechniques}
+              selectedTechnique={selectedTechnique}
+              onTechniqueSelect={handleTechniqueSelect}
+              onExecute={handleExecuteHack}
+              isExecuting={isExecutingHack}
+              playerLevel={player.level || 1}
+              className="h-full"
+            />
+          </div>
+        )}
+      </div>
+
       {/* Active Operations */}
       {activeOperations.length > 0 && (
         <div className="space-y-4">

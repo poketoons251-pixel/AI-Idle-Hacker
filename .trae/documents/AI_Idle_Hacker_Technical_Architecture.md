@@ -31,17 +31,17 @@ graph TD
 
 ## 3. Route Definitions
 
-| Route         | Purpose                                                                   |
-| ------------- | ------------------------------------------------------------------------- |
-| /             | Main Dashboard - displays resources, active operations, and quick actions |
-| /character    | Character Progression - skill trees, AI companions, equipment management  |
-| /operations   | Hacking Operations - target browser, mission planner, attack simulator    |
+| Route         | Purpose                                                                        |
+| ------------- | ------------------------------------------------------------------------------ |
+| /             | Main Dashboard - displays resources, active operations, and quick actions      |
+| /character    | Character Progression - skill trees, AI companions, equipment management       |
+| /operations   | Hacking Operations - target browser, mission planner, attack simulator         |
 | /ai-autoplay  | AI Autoplay - strategy configuration, performance analytics, override controls |
-| /marketplace  | Marketplace - equipment shop, AI modules, premium store                   |
-| /leaderboards | Leaderboards - global rankings, achievements, social features             |
-| /quests       | Quest System - story campaigns, daily challenges, achievement tracking    |
-| /settings     | Settings - game configuration, account management, tutorials              |
-| /login        | Authentication - login/register with email or OAuth                       |
+| /marketplace  | Marketplace - equipment shop, AI modules, premium store                        |
+| /leaderboards | Leaderboards - global rankings, achievements, social features                  |
+| /quests       | Quest System - story campaigns, daily challenges, achievement tracking         |
+| /settings     | Settings - game configuration, account management, tutorials                   |
+| /login        | Authentication - login/register with email or OAuth                            |
 
 ## 4. API Definitions
 
@@ -115,12 +115,12 @@ GET /api/quests/available
 
 Response:
 
-| Param Name | Param Type | Description |
-|------------|------------|-------------|
-| quests | array | Available quests for the player |
-| story_progress | object | Current story campaign progress |
-| daily_quests | array | Available daily challenges |
-| weekly_quests | array | Available weekly challenges |
+| Param Name      | Param Type | Description                     |
+| --------------- | ---------- | ------------------------------- |
+| quests          | array      | Available quests for the player |
+| story\_progress | object     | Current story campaign progress |
+| daily\_quests   | array      | Available daily challenges      |
+| weekly\_quests  | array      | Available weekly challenges     |
 
 ```
 POST /api/quests/start
@@ -128,18 +128,18 @@ POST /api/quests/start
 
 Request:
 
-| Param Name | Param Type | isRequired | Description |
-|------------|------------|------------|-------------|
-| quest_id | string | true | Quest identifier to start |
-| choices | object | false | Player choices for branching quests |
+| Param Name | Param Type | isRequired | Description                         |
+| ---------- | ---------- | ---------- | ----------------------------------- |
+| quest\_id  | string     | true       | Quest identifier to start           |
+| choices    | object     | false      | Player choices for branching quests |
 
 Response:
 
-| Param Name | Param Type | Description |
-|------------|------------|-------------|
-| success | boolean | Quest start status |
-| active_objectives | array | Current quest objectives |
-| story_context | object | Narrative context and lore |
+| Param Name         | Param Type | Description                |
+| ------------------ | ---------- | -------------------------- |
+| success            | boolean    | Quest start status         |
+| active\_objectives | array      | Current quest objectives   |
+| story\_context     | object     | Narrative context and lore |
 
 ```
 POST /api/quests/complete
@@ -147,20 +147,20 @@ POST /api/quests/complete
 
 Request:
 
-| Param Name | Param Type | isRequired | Description |
-|------------|------------|------------|-------------|
-| quest_id | string | true | Quest identifier to complete |
-| completion_data | object | true | Quest completion evidence/data |
-| player_choices | object | false | Final player decisions |
+| Param Name       | Param Type | isRequired | Description                    |
+| ---------------- | ---------- | ---------- | ------------------------------ |
+| quest\_id        | string     | true       | Quest identifier to complete   |
+| completion\_data | object     | true       | Quest completion evidence/data |
+| player\_choices  | object     | false      | Final player decisions         |
 
 Response:
 
-| Param Name | Param Type | Description |
-|------------|------------|-------------|
-| success | boolean | Quest completion status |
-| rewards | object | Earned rewards (credits, items, abilities) |
-| story_impact | object | Narrative consequences of choices |
-| unlocked_content | array | New quests or areas unlocked |
+| Param Name        | Param Type | Description                                |
+| ----------------- | ---------- | ------------------------------------------ |
+| success           | boolean    | Quest completion status                    |
+| rewards           | object     | Earned rewards (credits, items, abilities) |
+| story\_impact     | object     | Narrative consequences of choices          |
+| unlocked\_content | array      | New quests or areas unlocked               |
 
 **AI Autoplay Management**
 
@@ -170,12 +170,12 @@ GET /api/ai/config
 
 Response:
 
-| Param Name | Param Type | Description |
-|------------|------------|-------------|
-| enabled | boolean | AI autoplay activation status |
-| priorities | object | AI decision-making priorities configuration |
-| risk_tolerance | number | Risk level preference (0-1) |
-| resource_allocation | object | Automatic resource management settings |
+| Param Name           | Param Type | Description                                 |
+| -------------------- | ---------- | ------------------------------------------- |
+| enabled              | boolean    | AI autoplay activation status               |
+| priorities           | object     | AI decision-making priorities configuration |
+| risk\_tolerance      | number     | Risk level preference (0-1)                 |
+| resource\_allocation | object     | Automatic resource management settings      |
 
 ```
 POST /api/ai/configure
@@ -183,19 +183,19 @@ POST /api/ai/configure
 
 Request:
 
-| Param Name | Param Type | isRequired | Description |
-|------------|------------|------------|-------------|
-| priorities | object | true | AI behavior priorities (operations, upgrades, skills) |
-| risk_tolerance | number | true | Risk preference level (0-1) |
-| auto_upgrade | boolean | false | Enable automatic equipment upgrades |
-| energy_management | object | false | Energy allocation strategy |
+| Param Name         | Param Type | isRequired | Description                                           |
+| ------------------ | ---------- | ---------- | ----------------------------------------------------- |
+| priorities         | object     | true       | AI behavior priorities (operations, upgrades, skills) |
+| risk\_tolerance    | number     | true       | Risk preference level (0-1)                           |
+| auto\_upgrade      | boolean    | false      | Enable automatic equipment upgrades                   |
+| energy\_management | object     | false      | Energy allocation strategy                            |
 
 Response:
 
-| Param Name | Param Type | Description |
-|------------|------------|-------------|
-| success | boolean | Configuration update status |
-| active_since | timestamp | AI activation timestamp |
+| Param Name    | Param Type | Description                 |
+| ------------- | ---------- | --------------------------- |
+| success       | boolean    | Configuration update status |
+| active\_since | timestamp  | AI activation timestamp     |
 
 ```
 GET /api/ai/analytics
@@ -203,13 +203,13 @@ GET /api/ai/analytics
 
 Response:
 
-| Param Name | Param Type | Description |
-|------------|------------|-------------|
-| decisions_made | number | Total AI decisions count |
-| success_rate | number | AI operation success rate |
-| credits_earned | number | Credits generated by AI |
-| efficiency_score | number | Overall AI performance rating |
-| recent_actions | array | Last 10 AI actions with timestamps |
+| Param Name        | Param Type | Description                        |
+| ----------------- | ---------- | ---------------------------------- |
+| decisions\_made   | number     | Total AI decisions count           |
+| success\_rate     | number     | AI operation success rate          |
+| credits\_earned   | number     | Credits generated by AI            |
+| efficiency\_score | number     | Overall AI performance rating      |
+| recent\_actions   | array      | Last 10 AI actions with timestamps |
 
 ## 5. Data Model
 

@@ -233,7 +233,7 @@ export interface AIAnalytics {
 }
 
 export interface AIDecision {
-  type: 'operation' | 'upgrade' | 'skill' | 'resource' | 'start_operation' | 'upgrade_equipment' | 'allocate_skill' | 'emergency_override';
+  type: 'operation' | 'upgrade' | 'skill' | 'resource' | 'start_operation' | 'upgrade_equipment' | 'allocate_skill' | 'emergency_override' | 'execute_hack';
   targetId?: string;
   reasoning: string;
   confidence: number;
@@ -245,6 +245,9 @@ export interface AIDecision {
   points?: number;
   equipmentId?: string;
   operationId?: string;
+  // Hacking technique properties
+  techniqueId?: string;
+  targetInfo?: string;
 }
 
 interface GameState {
@@ -1399,7 +1402,7 @@ export const useGameStore = create<GameState>()((set, get) => {
         return null;
       },
 
-      executeAIDecision: (decision) => {
+      executeAIDecision: async (decision) => {
         const state = get();
         let success = false;
 
@@ -1459,6 +1462,50 @@ export const useGameStore = create<GameState>()((set, get) => {
               if (decision.points >= 3) {
                 state.addNotification(`Allocated ${decision.points} points to ${decision.skill}`, 'success');
               }
+            }
+          } else if (decision.type === 'execute_hack') {
+            // Execute hacking technique
+            try {
+              const response = await fetch('/api/hacking/execute', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  technique_id: decision.techniqueId,
+                  target_name: decision.targetInfo || 'ai_selected_target',
+                  player_id: state.player.id || 'player_1'
+                })
+              });
+              
+              if (response.ok) {
+                const result = await response.json();
+                success = result.success;
+                
+                if (success) {
+                  // Update player stats based on hack result
+                  if (result.rewards) {
+                    state.updatePlayer({
+                      credits: state.player.credits + (result.rewards.credits || 0),
+                      experience: state.player.experience + (result.rewards.experience || 0)
+                    });
+                  }
+                  
+                  // Update AI analytics for successful hack
+                  set((state) => ({
+                    aiAnalytics: {
+                      ...state.aiAnalytics,
+                      hacksExecuted: (state.aiAnalytics.hacksExecuted || 0) + 1,
+                      creditsEarned: (state.aiAnalytics.creditsEarned || 0) + (result.rewards?.credits || 0)
+                    },
+                  }));
+                  
+                  state.addNotification(`AI executed ${result.technique_name}: +${result.rewards?.credits || 0} credits`, 'success');
+                }
+              }
+            } catch (error) {
+              console.error('AI hack execution error:', error);
+              success = false;
             }
           } else if (decision.type === 'operation') {
             // Legacy support for old decision format

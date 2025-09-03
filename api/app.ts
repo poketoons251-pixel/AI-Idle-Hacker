@@ -8,6 +8,14 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
+import hackingRoutes from './routes/hacking.js';
+import storyRoutes from './routes/story.js';
+import intelligenceRoutes from './routes/intelligence.js';
+import partnersRoutes from './routes/partners.js';
+import aiPartnersRoutes from './routes/ai-partners.js';
+import campaignsRoutes from './routes/campaigns.js';
+import investigationRoutes from './routes/investigation.js';
+import systemRoutes from './routes/system.js';
 
 // for esm mode
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +35,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
  * API Routes
  */
 app.use('/api/auth', authRoutes);
+app.use('/api/hacking', hackingRoutes);
+app.use('/api/story', storyRoutes);
+app.use('/api/intelligence', intelligenceRoutes);
+app.use('/api/partners', partnersRoutes);
+app.use('/api/ai-partners', aiPartnersRoutes);
+app.use('/api/ai-personality', aiPartnersRoutes); // Alias for ai-partners
+app.use('/api/campaigns', campaignsRoutes);
+app.use('/api/investigation', investigationRoutes);
+app.use('/api/system', systemRoutes);
 
 /**
  * health

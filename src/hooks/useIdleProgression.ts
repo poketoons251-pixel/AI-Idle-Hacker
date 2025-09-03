@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useGameStore } from '../store/gameStore';
+import { useGameStore, Skills } from '../store/gameStore';
 
 interface IdleRewards {
   credits: number;
@@ -288,8 +288,46 @@ export const useIdleProgression = () => {
     });
   }, [player, equipment, activeOperations, lastUpdate]);
 
+  // Helper functions for calculating action efficiency
+  const calculateHackingEfficiency = useCallback(() => {
+    const playerLevel = Math.floor(player.experience / 1000);
+    const baseEfficiency = 0.78; // Increased base efficiency
+    const skillBonus = (player.skills?.hacking || 1) * 0.025; // Enhanced skill impact
+    const levelBonus = playerLevel * 0.012; // Better level scaling
+    const equipmentBonus = equipment.reduce((total, item) => total + (item.equipped ? item.level * 0.008 : 0), 0);
+    return Math.min(0.92, baseEfficiency + skillBonus + levelBonus + equipmentBonus);
+  }, [player, equipment]);
+
+  const calculateOperationEfficiency = useCallback(() => {
+    const playerLevel = Math.floor(player.experience / 1000);
+    const baseEfficiency = 0.82; // Increased base efficiency
+    const skillBonus = (player.skills?.hacking || 1) * 0.018; // Enhanced skill impact
+    const networkingBonus = (player.skills?.hardware || 1) * 0.012; // Additional hardware bonus
+    const levelBonus = playerLevel * 0.01; // Improved level scaling
+    return Math.min(0.94, baseEfficiency + skillBonus + networkingBonus + levelBonus);
+  }, [player]);
+
+  const calculateEquipmentEfficiency = useCallback(() => {
+    const totalBonus = equipment.reduce((total, item) => total + (item.equipped ? item.bonus : 0), 0);
+    const averageLevel = equipment.reduce((total, item) => total + (item.equipped ? item.level : 0), 0) / Math.max(1, equipment.filter(item => item.equipped).length);
+    const baseEfficiency = 0.68; // Increased base efficiency
+    const bonusEfficiency = totalBonus / 800; // Better scaling
+    const levelEfficiency = averageLevel * 0.015; // Level-based efficiency
+    return Math.min(0.88, baseEfficiency + bonusEfficiency + levelEfficiency);
+  }, [equipment]);
+
+  const calculateSkillEfficiency = useCallback(() => {
+    const skills = player.skills || {} as Skills;
+    const totalSkills = Object.values(skills).reduce((sum: number, skill: number) => sum + (skill || 0), 0);
+    const skillVariety = Object.keys(skills).length;
+    const baseEfficiency = 0.72; // Increased base efficiency
+    const skillBonus = totalSkills * 0.012; // Better skill scaling
+    const varietyBonus = skillVariety * 0.02; // Bonus for skill diversity
+    return Math.min(0.85, baseEfficiency + skillBonus + varietyBonus);
+  }, [player]);
+
   // AI Decision Making Engine
-  const executeAIDecisions = useCallback(() => {
+  const executeAIDecisions = useCallback(async () => {
     if (!aiActive || !player) return;
 
     try {
@@ -300,15 +338,69 @@ export const useIdleProgression = () => {
 
       if (timeSinceLastDecision < decisionInterval) return;
 
-      // AI Decision Logic
+      // Enhanced AI Decision Logic with balance optimization
+      const hackingEfficiency = calculateHackingEfficiency();
+      const operationEfficiency = calculateOperationEfficiency();
+      const equipmentEfficiency = calculateEquipmentEfficiency();
+      const skillEfficiency = calculateSkillEfficiency();
+      
+      // Calculate AI skill level based on experience
+      const aiSkillLevel = Math.floor(player.experience / 1000);
+      const currentEfficiency = Math.min(0.95, hackingEfficiency + (aiSkillLevel * 0.01));
+      
       const availableOperations = operations.filter(op => op.status === 'available');
       const activeOperationsCount = operations.filter(op => op.status === 'active').length;
       
-      // Decide what action to take based on priorities and current state
+      // Decide what action to take based on priorities and current state with improved efficiency
       let decision = null;
 
-      // 1. Check if we should start an operation
-      if (activeOperationsCount < 3 && availableOperations.length > 0 && player.energy >= 20) {
+      // 1. Check if we should execute a hacking technique (enhanced with balance optimization)
+      if (player.energy >= 15 && aiConfig.priorities.operations > 0.4) {
+        try {
+          const response = await fetch('/api/hacking/techniques');
+          if (response.ok) {
+            const data = await response.json();
+            const availableTechniques = data.techniques?.filter((technique: any) => 
+              technique.required_level <= player.level &&
+              player.energy >= technique.energy_cost
+            ) || [];
+            
+            if (availableTechniques.length > 0) {
+              // Enhanced technique selection with balance optimization
+              const bestTechnique = availableTechniques
+                .map((technique: any) => {
+                  // Apply skill bonuses with optimized balance parameters
+                  const skillBonus = (player.skills.hacking || 1) * 0.035; // Updated from balance config
+                  const equipmentBonus = equipment.reduce((total, item) => total + (item.equipped ? item.level * 0.5 : 0), 0);
+                  const effectiveSuccessRate = Math.min(95, technique.base_success_rate + (skillBonus + equipmentBonus) * 100);
+                  
+                  // Calculate expected value with risk tolerance
+                  const expectedValue = effectiveSuccessRate * technique.base_reward / 100;
+                  const riskAdjustedScore = (effectiveSuccessRate * aiConfig.riskTolerance) + (expectedValue * (1 - aiConfig.riskTolerance)) / 100;
+                  const efficiency = riskAdjustedScore / technique.energy_cost * currentEfficiency;
+                  
+                  return { ...technique, calculatedEfficiency: efficiency, effectiveSuccessRate };
+                })
+                .filter((technique: any) => technique.effectiveSuccessRate >= (aiConfig.riskTolerance * 100))
+                .sort((a: any, b: any) => b.calculatedEfficiency - a.calculatedEfficiency)[0];
+              
+              if (bestTechnique) {
+                decision = {
+                  type: 'execute_hack',
+                  techniqueId: bestTechnique.id,
+                  targetInfo: 'ai_automated_target',
+                  reason: `Executing ${bestTechnique.name} (Efficiency: ${bestTechnique.calculatedEfficiency.toFixed(2)}, Success Rate: ${Math.round(bestTechnique.effectiveSuccessRate)}%)`
+                };
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch hacking techniques for AI:', error);
+        }
+      }
+
+      // 2. Check if we should start an operation (fallback if no hacking techniques)
+      if (!decision && activeOperationsCount < 3 && availableOperations.length > 0 && player.energy >= 20) {
         const bestOperation = availableOperations
           .filter(op => {
             const energyCost = op.energyCost || 20;
@@ -330,7 +422,7 @@ export const useIdleProgression = () => {
         }
       }
 
-      // 2. Check if we should upgrade equipment
+      // 3. Check if we should upgrade equipment
       if (!decision && player.credits >= 1000 && aiConfig.priorities.equipment > 0.3) {
         const upgradeableEquipment = equipment.filter(item => 
           item.equipped && item.level < 10 && player.credits >= (item.upgradeCost || 1000)
@@ -348,7 +440,7 @@ export const useIdleProgression = () => {
         }
       }
 
-      // 3. Check if we should allocate skill points
+      // 4. Check if we should allocate skill points
       if (!decision && player.skillPoints > 0 && aiConfig.priorities.skills > 0.2) {
         const skillPriorities = {
           hacking: aiConfig.priorities.operations * 0.4,
@@ -398,11 +490,12 @@ export const useIdleProgression = () => {
     };
     
     const relevantSkill = player.skills[skillMap[operation.type]] || 1;
-    const baseRate = 60; // Base 60% success rate
-    const skillBonus = relevantSkill * 5; // 5% per skill level
-    const difficultyPenalty = (operation.difficulty || 1) * 10; // 10% penalty per difficulty level
+    const baseRate = 65; // Increased base success rate
+    const skillBonus = relevantSkill * 6; // Increased to 6% per skill level
+    const difficultyPenalty = (operation.difficulty || 1) * 8; // Reduced penalty to 8%
+    const playerLevelBonus = Math.floor(player.experience / 1000) * 2; // Level bonus
     
-    return Math.max(10, Math.min(95, baseRate + skillBonus - difficultyPenalty));
+    return Math.max(15, Math.min(95, baseRate + skillBonus + playerLevelBonus - difficultyPenalty));
   };
 
   // Helper function to calculate operation score for AI decision making
