@@ -65,15 +65,19 @@ export const StoryQuestIntegration: React.FC = () => {
   const fetchStoryEpisodes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/story/episodes');
-      if (!response.ok) throw new Error('Failed to fetch episodes');
       
-      const data = await response.json();
-      setEpisodes(data.episodes || []);
-      setPlayerProgress(data.player_progress || []);
+      // Import Supabase client dynamically to avoid build issues
+      const { storyService } = await import('../../lib/supabase');
+      
+      // Fetch episodes directly from Supabase
+      const episodes = await storyService.getStoryEpisodes();
+      const playerProgress = await storyService.getPlayerProgress(player.id || 'default-player');
+      
+      setEpisodes(episodes || []);
+      setPlayerProgress(playerProgress || []);
       
       // Find current episode
-      const availableEpisodes = data.episodes.filter((ep: StoryEpisode) => 
+      const availableEpisodes = episodes.filter((ep: StoryEpisode) => 
         ep.unlocked && !ep.completed
       );
       if (availableEpisodes.length > 0) {
@@ -158,32 +162,31 @@ export const StoryQuestIntegration: React.FC = () => {
     if (!currentEpisode) return;
 
     try {
-      const response = await fetch('/api/story/make-choice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          episode_id: currentEpisode.id,
-          choice_id: choiceId,
-          player_id: player.id || 'default-player'
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to make choice');
+      // Import Supabase client dynamically
+      const { storyService } = await import('../../lib/supabase');
       
-      const result = await response.json();
+      // Save player choice directly to Supabase
+      await storyService.savePlayerChoice(
+        player.id || 'default-player',
+        currentEpisode.id,
+        choiceId
+      );
+      
+      // Find the selected choice for feedback
+      const selectedChoice = currentEpisode.choices.find(c => c.id === choiceId);
       
       // Apply consequences through quest system
       makeQuestChoice(`story-${currentEpisode.id}`, choiceId);
       
-      // Apply story-specific consequences
-      if (result.consequences) {
-        result.consequences.forEach((consequence: any) => {
-          applyStoryConsequence(consequence);
+      // Apply story-specific consequences if available
+      if (selectedChoice?.consequences) {
+        Object.entries(selectedChoice.consequences).forEach(([type, value]) => {
+          applyStoryConsequence({ type, value, description: `${type}: ${value}` });
         });
       }
       
       setShowChoiceDialog(false);
-      addNotification(`Choice made: ${result.choice_text}`, 'success');
+      addNotification(`Choice made: ${selectedChoice?.choice_text || 'Choice recorded'}`, 'success');
       
       // Refresh episodes to get updated progress
       await fetchStoryEpisodes();
