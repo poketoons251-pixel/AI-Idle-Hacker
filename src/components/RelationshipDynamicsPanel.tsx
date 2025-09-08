@@ -89,7 +89,10 @@ export const RelationshipDynamicsPanel: React.FC<RelationshipDynamicsPanelProps>
   const fetchRelationshipData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/ai-partners/relationships/${partnerId}`);
+      const response = await fetch(`/api/ai-partners/relationships/${partnerId}?player_id=${encodeURIComponent(player.id)}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch relationship data: ${response.status}`);
+      }
       const data = await response.json();
       if (data.relationship) {
         setRelationship(data.relationship);
@@ -103,7 +106,10 @@ export const RelationshipDynamicsPanel: React.FC<RelationshipDynamicsPanelProps>
 
   const fetchInteractionHistory = async () => {
     try {
-      const response = await fetch(`/api/ai-partners/interactions/${partnerId}?timeRange=${timeRange}`);
+      const response = await fetch(`/api/ai-partners/interactions/${partnerId}?player_id=${encodeURIComponent(player.id)}&timeRange=${timeRange}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch interaction history: ${response.status}`);
+      }
       const data = await response.json();
       if (data.interactions) {
         setInteractions(data.interactions);
@@ -115,7 +121,10 @@ export const RelationshipDynamicsPanel: React.FC<RelationshipDynamicsPanelProps>
 
   const fetchRelationshipEvents = async () => {
     try {
-      const response = await fetch(`/api/ai-partners/relationships/${partnerId}/events?timeRange=${timeRange}`);
+      const response = await fetch(`/api/ai-partners/relationships/${partnerId}/events?player_id=${encodeURIComponent(player.id)}&timeRange=${timeRange}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch relationship events: ${response.status}`);
+      }
       const data = await response.json();
       if (data.events) {
         setEvents(data.events);

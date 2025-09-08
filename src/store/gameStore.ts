@@ -250,6 +250,159 @@ export interface AIDecision {
   targetInfo?: string;
 }
 
+// Phase 6: Guild System Interfaces
+export interface Guild {
+  id: string;
+  name: string;
+  description: string;
+  leaderId: string;
+  memberCount: number;
+  maxMembers: number;
+  level: number;
+  experience: number;
+  treasury: number;
+  reputation: number;
+  createdAt: number;
+  isPublic: boolean;
+  requirements: {
+    minLevel: number;
+    minReputation: number;
+  };
+  perks: {
+    bonusCredits: number;
+    bonusExperience: number;
+    bonusReputation: number;
+  };
+}
+
+export interface GuildMember {
+  id: string;
+  playerId: string;
+  username: string;
+  role: 'leader' | 'officer' | 'member';
+  joinedAt: number;
+  contributionPoints: number;
+  lastActive: number;
+  permissions: string[];
+}
+
+export interface GuildWar {
+  id: string;
+  attackingGuildId: string;
+  defendingGuildId: string;
+  status: 'pending' | 'active' | 'completed';
+  startTime: number;
+  endTime: number;
+  attackingScore: number;
+  defendingScore: number;
+  winner?: string;
+  rewards: {
+    credits: number;
+    experience: number;
+    reputation: number;
+  };
+}
+
+// Phase 6: AI Companion System Interfaces
+export interface AICompanion {
+  id: string;
+  name: string;
+  type: 'hacker' | 'analyst' | 'social' | 'guardian';
+  level: number;
+  experience: number;
+  skills: {
+    hacking: number;
+    analysis: number;
+    social: number;
+    defense: number;
+  };
+  personality: {
+    aggression: number;
+    caution: number;
+    creativity: number;
+    loyalty: number;
+  };
+  abilities: string[];
+  isActive: boolean;
+  lastTraining: number;
+  efficiency: number;
+  mood: 'happy' | 'neutral' | 'tired' | 'excited';
+  customization: {
+    avatar: string;
+    voice: string;
+    theme: string;
+  };
+}
+
+export interface CompanionTraining {
+  id: string;
+  companionId: string;
+  type: 'skill' | 'personality' | 'ability';
+  target: string;
+  duration: number;
+  startTime: number;
+  cost: number;
+  isCompleted: boolean;
+}
+
+// Phase 6: Social System Interfaces
+export interface Friendship {
+  id: string;
+  playerId: string;
+  friendId: string;
+  status: 'pending' | 'accepted' | 'blocked';
+  createdAt: number;
+  lastInteraction: number;
+  trustLevel: number;
+}
+
+export interface Mentorship {
+  id: string;
+  mentorId: string;
+  menteeId: string;
+  status: 'active' | 'completed' | 'cancelled';
+  startDate: number;
+  endDate?: number;
+  progress: number;
+  rewards: {
+    mentorCredits: number;
+    menteeExperience: number;
+  };
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  recipientId?: string;
+  guildId?: string;
+  content: string;
+  timestamp: number;
+  type: 'direct' | 'guild' | 'system';
+  isRead: boolean;
+}
+
+export interface MarketplaceListing {
+  id: string;
+  sellerId: string;
+  itemType: 'equipment' | 'companion' | 'service';
+  itemId: string;
+  price: number;
+  description: string;
+  createdAt: number;
+  expiresAt: number;
+  status: 'active' | 'sold' | 'expired' | 'cancelled';
+}
+
+export interface CrossPlatformLink {
+  id: string;
+  playerId: string;
+  platform: 'steam' | 'discord' | 'twitch' | 'youtube';
+  platformId: string;
+  isVerified: boolean;
+  linkedAt: number;
+  benefits: string[];
+}
+
 interface GameState {
   // Player data
   player: Player;
@@ -275,6 +428,24 @@ interface GameState {
   aiAnalytics: AIAnalytics;
   aiActive: boolean;
   aiLastDecision?: AIDecision;
+  
+  // Phase 6: Guild System
+  currentGuild: Guild | null;
+  guildMembers: GuildMember[];
+  availableGuilds: Guild[];
+  guildWars: GuildWar[];
+  
+  // Phase 6: AI Companion System
+  aiCompanions: AICompanion[];
+  activeCompanion: AICompanion | null;
+  companionTraining: CompanionTraining[];
+  companionMarketplace: MarketplaceListing[];
+  
+  // Phase 6: Social System
+  friendships: Friendship[];
+  mentorships: Mentorship[];
+  chatMessages: ChatMessage[];
+  crossPlatformLinks: CrossPlatformLink[];
   
   // UI state
   activeTab: string;
@@ -338,10 +509,45 @@ interface GameState {
   gainExperience: (amount: number) => void;
   spendCredits: (amount: number) => boolean;
   regenerateEnergy: () => void;
+  
+  // Phase 6: Guild Actions
+  createGuild: (name: string, description: string) => void;
+  joinGuild: (guildId: string) => void;
+  leaveGuild: () => void;
+  inviteToGuild: (playerId: string) => void;
+  acceptGuildInvite: (guildId: string) => void;
+  promoteGuildMember: (memberId: string, role: 'officer' | 'leader') => void;
+  demoteGuildMember: (memberId: string) => void;
+  kickGuildMember: (memberId: string) => void;
+  startGuildWar: (targetGuildId: string) => void;
+  endGuildWar: (warId: string) => void;
+  
+  // Phase 6: AI Companion Actions
+  createCompanion: (name: string, type: 'hacker' | 'analyst' | 'guardian' | 'infiltrator') => void;
+  trainCompanion: (companionId: string, skill: string, duration: number) => void;
+  deployCompanion: (companionId: string, missionId: string) => void;
+  recallCompanion: (companionId: string) => void;
+  upgradeCompanion: (companionId: string, upgradeType: string) => void;
+  setActiveCompanion: (companionId: string) => void;
+  
+  // Phase 6: Social Actions
+  sendFriendRequest: (playerId: string) => void;
+  acceptFriendRequest: (requestId: string) => void;
+  removeFriend: (friendId: string) => void;
+  requestMentorship: (mentorId: string) => void;
+  acceptMentorship: (requestId: string) => void;
+  endMentorship: (mentorshipId: string) => void;
+  sendMessage: (recipientId: string, content: string, type: 'direct' | 'guild' | 'global') => void;
+  
+  // Phase 6: Cross-Platform Actions
+  linkPlatform: (platform: 'steam' | 'discord' | 'twitch' | 'youtube', accountId: string) => void;
+  unlinkPlatform: (platform: string) => void;
+  syncProgress: () => void;
+  shareAchievement: (achievementId: string, platforms: string[]) => void;
 }
 
 const initialPlayer: Player = {
-  id: 'player-1',
+  id: '550e8400-e29b-41d4-a716-446655440000',
   username: 'Anonymous',
   level: 1,
   experience: 0,
@@ -818,6 +1024,25 @@ export const useGameStore = create<GameState>()((set, get) => {
         aiConfig: initialAIConfig,
         aiAnalytics: initialAIAnalytics,
         aiActive: false,
+        
+        // Phase 6: Guild System
+        currentGuild: null,
+        guildMembers: [],
+        availableGuilds: [],
+        guildWars: [],
+        
+        // Phase 6: AI Companion System
+        aiCompanions: [],
+        activeCompanion: null,
+        companionTraining: [],
+        companionMarketplace: [],
+        
+        // Phase 6: Social System
+        friendships: [],
+        mentorships: [],
+        chatMessages: [],
+        crossPlatformLinks: [],
+        
         activeTab: 'dashboard',
         notifications: [],
         lastUpdate: Date.now(),
@@ -1733,6 +1958,359 @@ export const useGameStore = create<GameState>()((set, get) => {
         });
 
         state.addNotification(`Choice made: ${choice.text}`, 'info');
+      },
+      
+      // Phase 6: Guild Actions
+      createGuild: (name, description) => {
+        const state = get();
+        const newGuild: Guild = {
+          id: `guild-${Date.now()}`,
+          name,
+          description,
+          leaderId: state.player.id,
+          memberCount: 1,
+          level: 1,
+          experience: 0,
+          reputation: 0,
+          treasury: 0,
+          createdAt: Date.now(),
+          isRecruiting: true,
+          tags: [],
+          achievements: [],
+        };
+        
+        set((state) => ({
+          currentGuild: newGuild,
+          availableGuilds: [...state.availableGuilds, newGuild],
+        }));
+        
+        state.addNotification(`Guild "${name}" created successfully!`, 'success');
+      },
+      
+      joinGuild: (guildId) => {
+        const state = get();
+        const guild = state.availableGuilds.find(g => g.id === guildId);
+        if (guild) {
+          set((state) => ({ currentGuild: guild }));
+          state.addNotification(`Joined guild "${guild.name}"!`, 'success');
+        }
+      },
+      
+      leaveGuild: () => {
+        const state = get();
+        if (state.currentGuild) {
+          const guildName = state.currentGuild.name;
+          set((state) => ({ currentGuild: null, guildMembers: [] }));
+          state.addNotification(`Left guild "${guildName}"`, 'info');
+        }
+      },
+      
+      inviteToGuild: (playerId) => {
+        const state = get();
+        state.addNotification(`Guild invitation sent to player ${playerId}`, 'info');
+      },
+      
+      acceptGuildInvite: (guildId) => {
+        const state = get();
+        state.joinGuild(guildId);
+      },
+      
+      promoteGuildMember: (memberId, role) => {
+        const state = get();
+        set((state) => ({
+          guildMembers: state.guildMembers.map(member =>
+            member.id === memberId ? { ...member, role } : member
+          ),
+        }));
+        state.addNotification(`Member promoted to ${role}`, 'success');
+      },
+      
+      demoteGuildMember: (memberId) => {
+        const state = get();
+        set((state) => ({
+          guildMembers: state.guildMembers.map(member =>
+            member.id === memberId ? { ...member, role: 'member' } : member
+          ),
+        }));
+        state.addNotification('Member demoted', 'info');
+      },
+      
+      kickGuildMember: (memberId) => {
+        const state = get();
+        set((state) => ({
+          guildMembers: state.guildMembers.filter(member => member.id !== memberId),
+        }));
+        state.addNotification('Member removed from guild', 'info');
+      },
+      
+      startGuildWar: (targetGuildId) => {
+        const state = get();
+        const targetGuild = state.availableGuilds.find(g => g.id === targetGuildId);
+        if (targetGuild && state.currentGuild) {
+          const newWar: GuildWar = {
+            id: `war-${Date.now()}`,
+            attackerGuildId: state.currentGuild.id,
+            defenderGuildId: targetGuildId,
+            startTime: Date.now(),
+            endTime: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7 days
+            status: 'active',
+            attackerScore: 0,
+            defenderScore: 0,
+            prize: 10000,
+          };
+          
+          set((state) => ({
+            guildWars: [...state.guildWars, newWar],
+          }));
+          
+          state.addNotification(`Guild war started against ${targetGuild.name}!`, 'info');
+        }
+      },
+      
+      endGuildWar: (warId) => {
+        const state = get();
+        set((state) => ({
+          guildWars: state.guildWars.map(war =>
+            war.id === warId ? { ...war, status: 'completed' } : war
+          ),
+        }));
+        state.addNotification('Guild war ended', 'info');
+      },
+      
+      // Phase 6: AI Companion Actions
+      createCompanion: (name, type) => {
+        const state = get();
+        const newCompanion: AICompanion = {
+          id: `companion-${Date.now()}`,
+          name,
+          type,
+          level: 1,
+          experience: 0,
+          skills: {
+            hacking: type === 'hacker' ? 3 : 1,
+            stealth: type === 'infiltrator' ? 3 : 1,
+            social: type === 'analyst' ? 3 : 1,
+            hardware: type === 'guardian' ? 3 : 1,
+            ai: 2,
+          },
+          personality: {
+            aggression: Math.random(),
+            curiosity: Math.random(),
+            loyalty: 0.8,
+            independence: Math.random(),
+          },
+          status: 'idle',
+          energy: 100,
+          maxEnergy: 100,
+          createdAt: Date.now(),
+          lastActive: Date.now(),
+          upgrades: [],
+          achievements: [],
+        };
+        
+        set((state) => ({
+          aiCompanions: [...state.aiCompanions, newCompanion],
+        }));
+        
+        state.addNotification(`AI Companion "${name}" created!`, 'success');
+      },
+      
+      trainCompanion: (companionId, skill, duration) => {
+        const state = get();
+        const companion = state.aiCompanions.find(c => c.id === companionId);
+        if (companion) {
+          const training: CompanionTraining = {
+            id: `training-${Date.now()}`,
+            companionId,
+            skill,
+            startTime: Date.now(),
+            duration,
+            progress: 0,
+            cost: duration * 10,
+          };
+          
+          set((state) => ({
+            companionTraining: [...state.companionTraining, training],
+          }));
+          
+          state.addNotification(`${companion.name} started training ${skill}`, 'info');
+        }
+      },
+      
+      deployCompanion: (companionId, missionId) => {
+        const state = get();
+        set((state) => ({
+          aiCompanions: state.aiCompanions.map(companion =>
+            companion.id === companionId
+              ? { ...companion, status: 'deployed', currentMission: missionId }
+              : companion
+          ),
+        }));
+        state.addNotification('Companion deployed on mission', 'info');
+      },
+      
+      recallCompanion: (companionId) => {
+        const state = get();
+        set((state) => ({
+          aiCompanions: state.aiCompanions.map(companion =>
+            companion.id === companionId
+              ? { ...companion, status: 'idle', currentMission: undefined }
+              : companion
+          ),
+        }));
+        state.addNotification('Companion recalled', 'info');
+      },
+      
+      upgradeCompanion: (companionId, upgradeType) => {
+        const state = get();
+        const companion = state.aiCompanions.find(c => c.id === companionId);
+        if (companion) {
+          set((state) => ({
+            aiCompanions: state.aiCompanions.map(c =>
+              c.id === companionId
+                ? { ...c, upgrades: [...c.upgrades, upgradeType] }
+                : c
+            ),
+          }));
+          state.addNotification(`${companion.name} upgraded with ${upgradeType}`, 'success');
+        }
+      },
+      
+      setActiveCompanion: (companionId) => {
+        const state = get();
+        const companion = state.aiCompanions.find(c => c.id === companionId);
+        if (companion) {
+          set((state) => ({ activeCompanion: companion }));
+          state.addNotification(`${companion.name} is now your active companion`, 'info');
+        }
+      },
+      
+      // Phase 6: Social Actions
+      sendFriendRequest: (playerId) => {
+        const state = get();
+        state.addNotification(`Friend request sent to player ${playerId}`, 'info');
+      },
+      
+      acceptFriendRequest: (requestId) => {
+        const state = get();
+        const newFriendship: Friendship = {
+          id: `friendship-${Date.now()}`,
+          playerId: state.player.id,
+          friendId: requestId,
+          status: 'active',
+          createdAt: Date.now(),
+          interactionCount: 0,
+          lastInteraction: Date.now(),
+        };
+        
+        set((state) => ({
+          friendships: [...state.friendships, newFriendship],
+        }));
+        
+        state.addNotification('Friend request accepted!', 'success');
+      },
+      
+      removeFriend: (friendId) => {
+        const state = get();
+        set((state) => ({
+          friendships: state.friendships.filter(f => f.friendId !== friendId),
+        }));
+        state.addNotification('Friend removed', 'info');
+      },
+      
+      requestMentorship: (mentorId) => {
+        const state = get();
+        state.addNotification(`Mentorship request sent to ${mentorId}`, 'info');
+      },
+      
+      acceptMentorship: (requestId) => {
+        const state = get();
+        const newMentorship: Mentorship = {
+          id: `mentorship-${Date.now()}`,
+          mentorId: requestId,
+          menteeId: state.player.id,
+          status: 'active',
+          startDate: Date.now(),
+          skillFocus: 'hacking',
+          progress: 0,
+          sessionsCompleted: 0,
+        };
+        
+        set((state) => ({
+          mentorships: [...state.mentorships, newMentorship],
+        }));
+        
+        state.addNotification('Mentorship accepted!', 'success');
+      },
+      
+      endMentorship: (mentorshipId) => {
+        const state = get();
+        set((state) => ({
+          mentorships: state.mentorships.map(m =>
+            m.id === mentorshipId ? { ...m, status: 'completed' } : m
+          ),
+        }));
+        state.addNotification('Mentorship ended', 'info');
+      },
+      
+      sendMessage: (recipientId, content, type) => {
+        const state = get();
+        const newMessage: ChatMessage = {
+          id: `msg-${Date.now()}`,
+          senderId: state.player.id,
+          recipientId,
+          content,
+          type,
+          timestamp: Date.now(),
+          isRead: false,
+        };
+        
+        set((state) => ({
+          chatMessages: [...state.chatMessages, newMessage],
+        }));
+        
+        state.addNotification('Message sent', 'info');
+      },
+      
+      // Phase 6: Cross-Platform Actions
+      linkPlatform: (platform, accountId) => {
+        const state = get();
+        const newLink: CrossPlatformLink = {
+          id: `link-${Date.now()}`,
+          playerId: state.player.id,
+          platform,
+          accountId,
+          linkedAt: Date.now(),
+          isActive: true,
+          syncEnabled: true,
+        };
+        
+        set((state) => ({
+          crossPlatformLinks: [...state.crossPlatformLinks, newLink],
+        }));
+        
+        state.addNotification(`${platform} account linked successfully!`, 'success');
+      },
+      
+      unlinkPlatform: (platform) => {
+        const state = get();
+        set((state) => ({
+          crossPlatformLinks: state.crossPlatformLinks.filter(link => link.platform !== platform),
+        }));
+        state.addNotification(`${platform} account unlinked`, 'info');
+      },
+      
+      syncProgress: () => {
+        const state = get();
+        state.addNotification('Progress synced across platforms', 'success');
+      },
+      
+      shareAchievement: (achievementId, platforms) => {
+        const state = get();
+        const achievement = state.achievements.find(a => a.id === achievementId);
+        if (achievement) {
+          state.addNotification(`Achievement "${achievement.name}" shared to ${platforms.join(', ')}`, 'success');
+        }
       },
     };
 });

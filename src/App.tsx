@@ -10,10 +10,14 @@ import { Leaderboards } from './pages/Leaderboards';
 import { Settings } from './pages/Settings';
 import { AIAutoplay } from './pages/AIAutoplay';
 import { Quests } from './pages/Quests';
+import GuildManagement from './pages/GuildManagement';
+import AICompanionHub from './pages/AICompanionHub';
+import SocialDashboard from './pages/SocialDashboard';
+import CrossPlatformSync from './pages/CrossPlatformSync';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/AI-Idle-Hacker">
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -24,6 +28,10 @@ function App() {
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/leaderboards" element={<Leaderboards />} />
           <Route path="/ai-autoplay" element={<AIAutoplay />} />
+          <Route path="/guild" element={<GuildManagement />} />
+          <Route path="/ai-companions" element={<AICompanionHub />} />
+          <Route path="/social" element={<SocialDashboard />} />
+          <Route path="/sync" element={<CrossPlatformSync />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>

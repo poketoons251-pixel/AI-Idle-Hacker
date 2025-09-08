@@ -64,11 +64,17 @@ export const EnhancedAIPersonality: React.FC<EnhancedAIPersonalityProps> = ({
       setLoading(true);
       
       // Fetch personality traits
-      const traitsResponse = await fetch('/api/ai-personality/traits');
+      const traitsResponse = await fetch(`/api/ai-personality/traits?player_id=${encodeURIComponent(player.id)}`);
+      if (!traitsResponse.ok) {
+        throw new Error(`Failed to fetch traits: ${traitsResponse.status}`);
+      }
       const traitsData = await traitsResponse.json();
       
       // Fetch AI partners
-      const partnersResponse = await fetch('/api/ai-personality/partners');
+      const partnersResponse = await fetch(`/api/ai-personality/partners?player_id=${encodeURIComponent(player.id)}`);
+      if (!partnersResponse.ok) {
+        throw new Error(`Failed to fetch partners: ${partnersResponse.status}`);
+      }
       const partnersData = await partnersResponse.json();
       
       // Fetch pending story choices

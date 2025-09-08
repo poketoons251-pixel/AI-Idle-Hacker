@@ -2,14 +2,24 @@
  * local server entry file, for local development
  */
 import app from './app.js';
+import { createServer } from 'http';
+import { initializeWebSocketServer } from './websocket.js';
 
 /**
  * start server with port
  */
 const PORT = process.env.PORT || 3001;
 
-const server = app.listen(PORT, () => {
+// Create HTTP server
+const server = createServer(app);
+
+// Initialize WebSocket server
+const wsServer = initializeWebSocketServer(8083);
+
+// Start server
+server.listen(PORT, () => {
   console.log(`Server ready on port ${PORT}`);
+  console.log(`WebSocket server initialized`);
 });
 
 /**

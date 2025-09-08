@@ -4,6 +4,60 @@ import { authenticateUser } from '../middleware/auth.js';
 
 const router = Router();
 
+// Initialize campaign system for a player
+router.post('/initialize', authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Get all active campaigns
+    const { data: campaigns, error: campaignsError } = await supabase
+      .from('campaign_metadata')
+      .select('campaign_id, total_episodes')
+      .eq('is_active', true);
+
+    if (campaignsError) {
+      console.error('Error fetching campaigns:', campaignsError);
+      return res.status(500).json({ error: 'Failed to initialize campaigns' });
+    }
+
+    // Initialize progress for each campaign if not exists
+    const progressPromises = campaigns.map(async (campaign) => {
+      const { data: existingProgress } = await supabase
+        .from('campaign_progress')
+        .select('id')
+        .eq('player_id', userId)
+        .eq('campaign_id', campaign.campaign_id)
+        .single();
+
+      if (!existingProgress) {
+        return supabase
+          .from('campaign_progress')
+          .insert({
+            player_id: userId,
+            campaign_id: campaign.campaign_id,
+            total_episodes: campaign.total_episodes,
+            campaign_status: 'active'
+          });
+      }
+      return null;
+    });
+
+    await Promise.all(progressPromises.filter(Boolean));
+
+    res.json({ 
+      success: true, 
+      message: 'Campaign system initialized successfully',
+      campaigns_count: campaigns.length
+    });
+  } catch (error) {
+    console.error('Campaign initialization error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get all available campaigns
 router.get('/metadata', async (req, res) => {
   try {

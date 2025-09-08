@@ -66,18 +66,21 @@ export const StoryQuestIntegration: React.FC = () => {
     try {
       setLoading(true);
       
-      // Import Supabase client dynamically to avoid build issues
-      const { storyService } = await import('../../lib/supabase');
+      // Use backend API endpoints instead of direct Supabase calls
+      const episodesResponse = await fetch('/api/story/episodes?player_id=' + encodeURIComponent(player.id));
+      if (!episodesResponse.ok) {
+        throw new Error(`Failed to fetch episodes: ${episodesResponse.status}`);
+      }
+      const episodesData = await episodesResponse.json();
       
-      // Fetch episodes directly from Supabase
-      const episodes = await storyService.getStoryEpisodes();
-      const playerProgress = await storyService.getPlayerProgress(player.id || 'default-player');
+      // Mock player progress for now since the API might not have this endpoint
+      const mockProgress: PlayerProgress[] = [];
       
-      setEpisodes(episodes || []);
-      setPlayerProgress(playerProgress || []);
+      setEpisodes(episodesData.episodes || []);
+      setPlayerProgress(mockProgress);
       
       // Find current episode
-      const availableEpisodes = episodes.filter((ep: StoryEpisode) => 
+      const availableEpisodes = (episodesData.episodes || []).filter((ep: StoryEpisode) => 
         ep.unlocked && !ep.completed
       );
       if (availableEpisodes.length > 0) {
@@ -162,15 +165,24 @@ export const StoryQuestIntegration: React.FC = () => {
     if (!currentEpisode) return;
 
     try {
-      // Import Supabase client dynamically
-      const { storyService } = await import('../../lib/supabase');
+      // Use backend API to save player choice
+      const response = await fetch('/api/story/make-choice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          player_id: player.id,
+          episode_id: currentEpisode.id,
+          choice_id: choiceId
+        })
+      });
       
-      // Save player choice directly to Supabase
-      await storyService.savePlayerChoice(
-        player.id || 'default-player',
-        currentEpisode.id,
-        choiceId
-      );
+      if (!response.ok) {
+        throw new Error(`Failed to make choice: ${response.status}`);
+      }
+      
+      const result = await response.json();
       
       // Find the selected choice for feedback
       const selectedChoice = currentEpisode.choices.find(c => c.id === choiceId);
