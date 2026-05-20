@@ -1,8 +1,8 @@
 # Project State
 
 ## Current Phase
-**Phase:** Initialization Complete
-**Status:** Ready for /gsd-discuss-phase 1 or /gsd-plan-phase 1
+**Phase:** Phase 1 Context Complete
+**Status:** Ready for /gsd-plan-phase 1
 
 ## Project Summary
 - **Name:** AI Idle Hacker
@@ -15,20 +15,20 @@
 
 ## Completed Phases
 - [x] Project initialization (2026-05-20)
-  - PROJECT.md created
-  - config.json created (YOLO mode, standard granularity, parallel execution)
-  - Research completed (5 documents: STACK, FEATURES, ARCHITECTURE, PITFALLS, SUMMARY)
-  - REQUIREMENTS.md created (33 v1 requirements)
-  - ROADMAP.md created (6 phases, 100% coverage)
-  - STATE.md initialized
+  - PROJECT.md, config.json, research docs, REQUIREMENTS.md, ROADMAP.md created
+- [x] Phase 1 discussion (2026-05-20)
+  - CONTEXT.md created with 5 implementation decisions
+  - All gray areas resolved: xterm.js replace, Web Worker, HUD bar, command registry, CRT+glow
 
 ## Memory
-- Existing codebase has Vite + React + Supabase scaffolding
-- AI auto-play: AI watches UI and makes strategic decisions via Supabase Edge Functions
-- MVP scope: near-complete experience
-- Single-player, web browser only
-- xterm.js for terminal, Zustand for state, IndexedDB for saves
-- Research confidence: HIGH across all dimensions
+- Existing codebase has substantial scaffolding: gameStore.ts (2331 lines), TerminalInterface.tsx (235 lines), idleWorker.ts, useIdleProgression.ts, 25+ components
+- Phase 1 decisions locked:
+  - Replace TerminalInterface with xterm.js + WebGL addon
+  - Web Worker for game loop (reuse existing idleWorker infrastructure)
+  - HUD bar at top for resource counters
+  - Command registry pattern (not hardcoded switch)
+  - CRT scanlines + neon glow for cyberpunk effects
+  - Zustand store is single source of truth
 
 ## Next Step
-Run `/gsd-discuss-phase 1` to gather context and clarify approach for Phase 1: Terminal Foundation
+Run `/gsd-plan-phase 1` to create executable plan for Terminal Foundation
