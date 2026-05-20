@@ -11,6 +11,7 @@ export const HudBar: React.FC = () => {
   const maxEnergy = useGameStore((s) => s.player?.maxEnergy ?? 100);
   const reputation = useGameStore((s) => s.player?.reputation ?? 0);
   const username = useGameStore((s) => s.player?.username ?? 'Anonymous');
+  const creditsPerSecond = useGameStore((s) => s.getCreditRate?.() ?? 0);
 
   const energyPercent = maxEnergy > 0 ? (energy / maxEnergy) * 100 : 0;
 
@@ -34,6 +35,9 @@ export const HudBar: React.FC = () => {
                 </div>
                 <div className="font-mono text-sm font-bold text-cyber-accent cyber-text-glow">
                   {credits.toLocaleString()}
+                </div>
+                <div className="flex items-center gap-1 text-[10px] text-cyber-accent/60 font-mono">
+                  <span>+{creditsPerSecond}/sec</span>
                 </div>
               </div>
             </div>
