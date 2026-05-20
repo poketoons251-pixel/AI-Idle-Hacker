@@ -24,6 +24,11 @@
   - Created XtermTerminal.tsx with cyberpunk theme and React 18 Strict Mode cleanup
   - Self-hosted JetBrains Mono font via @fontsource
   - 3 commits: 607f4e3, e1928c6, 1833031
+- [x] Phase 1 Plan 02: HUD Bar Resource Counters (2026-05-20)
+  - Created HudBar.tsx with individual Zustand selectors (credits, level, energy, reputation)
+  - Energy displayed as fraction with mini progress bar
+  - Integrated HudBar into Layout.tsx between Navigation and main content
+  - 2 commits: d2975f3, 54306c0
 
 ## Memory
 - Existing codebase has substantial scaffolding: gameStore.ts (2331 lines), TerminalInterface.tsx (235 lines), idleWorker.ts, useIdleProgression.ts, 25+ components
