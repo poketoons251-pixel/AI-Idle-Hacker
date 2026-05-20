@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { 
   User, 
   Zap, 
@@ -13,11 +13,13 @@ import {
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { ProgressionPanel } from '../components/progression/ProgressionPanel';
-import EnhancedQuestSystem from '../components/quest/EnhancedQuestSystem';
 import NarrativeQuestSystem from '../components/narrative/NarrativeQuestSystem';
 import DynamicQuestGenerator from '../components/quest/QuestGenerator';
 import { IdleOptimizationSystem } from '../components/IdleOptimizationSystem';
 import { Phase3Integration } from '../components/Phase3Integration';
+import { TerminalContainer } from '../components/TerminalContainer';
+import { useGameLoop } from '../hooks/useGameLoop';
+import type { Terminal } from '@xterm/xterm';
 
 const ResourceCard: React.FC<{
   title: string;
@@ -142,6 +144,33 @@ const ActiveOperation: React.FC<{ operation: any }> = ({ operation }) => {
 
 export const Dashboard: React.FC = () => {
   const { player, skills, operations } = useGameStore();
+  const terminalRef = useRef<Terminal | null>(null);
+
+  const handleTerminalReady = useCallback((term: Terminal) => {
+    terminalRef.current = term;
+  }, []);
+
+  // Game loop — fires ticks, regenerates energy
+  useGameLoop({
+    onTick: useCallback((tick: number) => {
+      // Every 50 ticks (5 seconds), write a game event to the terminal
+      if (tick % 50 === 0 && terminalRef.current) {
+        const term = terminalRef.current;
+        const state = useGameStore.getState();
+        const credits = state.player.credits;
+
+        // Simulate a periodic game event
+        term.writeln('');
+        term.writeln(`\x1b[1;36m[SYSTEM]\x1b[0m  Tick ${tick} — Credits: ${credits.toLocaleString()}`);
+      }
+    }, []),
+  });
+
+  // Hook point for future Phase 2 logic (e.g., triggering operations from commands)
+  const handleCommand = useCallback((_input: string) => {
+    // The command registry handles execution. This is a hook point for
+    // future Phase 2 logic.
+  }, []);
   
   // Show loading state if data is not ready
   if (!player || !skills) {
@@ -171,6 +200,11 @@ export const Dashboard: React.FC = () => {
         <p className="text-cyber-primary/60 font-mono">
           Welcome back, {player.username}
         </p>
+      </div>
+
+      {/* Terminal — Primary Game Interface */}
+      <div className="cyber-border rounded-lg overflow-hidden">
+        <TerminalContainer onTerminalReady={handleTerminalReady} />
       </div>
       
       {/* Resource Overview */}
@@ -306,7 +340,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Enhanced Quest System with Twists & Memorable Elements */}
       <div className="bg-gray-800 rounded-lg p-6">
-        <EnhancedQuestSystem />
+        <NarrativeQuestSystem />
       </div>
 
       {/* Phase 3: Enhanced Experience Integration */}

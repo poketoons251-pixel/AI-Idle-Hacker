@@ -8,12 +8,17 @@ import '../styles/crt-effects.css';
 // Side-effect import: registers system commands
 import '../commands/system';
 
-export const TerminalContainer: React.FC = () => {
+interface TerminalContainerProps {
+  onTerminalReady?: (term: Terminal) => void;
+}
+
+export const TerminalContainer: React.FC<TerminalContainerProps> = ({ onTerminalReady }) => {
   const terminalRef = useRef<Terminal | null>(null);
 
   const handleTerminalReady = useCallback((term: Terminal) => {
     terminalRef.current = term;
-  }, []);
+    onTerminalReady?.(term);
+  }, [onTerminalReady]);
 
   const handleCommand = useCallback((input: string) => {
     const term = terminalRef.current;
