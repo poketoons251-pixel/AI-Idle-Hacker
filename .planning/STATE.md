@@ -49,5 +49,15 @@
 - XtermTerminal.tsx created but NOT yet integrated — TerminalInterface.tsx still active (replacement in Plan 03)
 - addon-canvas peer dep conflict with xterm v6 resolved via --legacy-peer-deps (canvas is fallback-only)
 
+- [x] Phase 1 Plan 04: Game Loop Skeleton & Dashboard Integration (2026-05-20)
+  - Created gameLoopWorker.ts — dedicated tick timer (10 ticks/sec, setTimeout-based)
+  - Created useGameLoop.ts — worker lifecycle hook with tick accumulator (1-sec batching)
+  - Integrated TerminalContainer into Dashboard as first major section
+  - Energy regeneration: +1 energy/sec, capped at maxEnergy
+  - Terminal receives [SYSTEM] messages every 5 seconds
+  - Visibility change handler for future offline progress
+  - Fixed pre-existing EnhancedQuestSystem import alias bug
+  - 3 commits: bc182a7, c8d20b2, 76bb41d
+
 ## Next Step
-Execute remaining Phase 1 plans: 01-02, 01-03, 01-04
+Phase 1 complete — all 4 plans executed. Ready for verification and Phase 2 planning.
