@@ -29,6 +29,13 @@
   - Energy displayed as fraction with mini progress bar
   - Integrated HudBar into Layout.tsx between Navigation and main content
   - 2 commits: d2975f3, 54306c0
+- [x] Phase 1 Plan 03: Command Registry, CRT Effects & TerminalContainer (2026-05-20)
+  - Created commandRegistry.ts (typed registry with handler map), terminalColors.ts (11 ANSI helpers)
+  - Created system.ts registering help/clear/status/scan commands
+  - Created crt-effects.css with scanlines, flicker, animated scanline bar
+  - Created TerminalContainer.tsx wrapping XtermTerminal with CRT overlays
+  - Added onTerminalReady prop to XtermTerminal for Terminal instance access
+  - 2 commits: 2dc915e, 4e3405f
 
 ## Memory
 - Existing codebase has substantial scaffolding: gameStore.ts (2331 lines), TerminalInterface.tsx (235 lines), idleWorker.ts, useIdleProgression.ts, 25+ components
