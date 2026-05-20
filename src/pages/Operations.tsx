@@ -18,7 +18,7 @@ import {
   Skull
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-import TerminalInterface from '../components/TerminalInterface';
+import { XtermTerminal } from '../components/XtermTerminal';
 import HackingTechniqueSelector from '../components/HackingTechniqueSelector';
 
 const operationTypes = [
@@ -586,9 +586,8 @@ export const Operations: React.FC = () => {
         
         {showAdvancedHacking && (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <TerminalInterface 
-              onCommandExecute={handleTerminalCommand}
-              isExecuting={isExecutingHack}
+            <XtermTerminal 
+              onCommand={handleTerminalCommand}
               className="h-full"
             />
             <HackingTechniqueSelector
