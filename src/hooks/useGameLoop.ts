@@ -54,6 +54,20 @@ export function useGameLoop(options: GameLoopOptions = {}) {
       });
     }
 
+    // Passive credit generation: base rate + equipped equipment bonuses
+    const getCreditRate = () => {
+      const state = storeRef.current.getState();
+      const baseRate = 5; // per D-03: 5 credits/sec base rate
+      const equipmentBonus = state.equipment
+        .filter(e => e.equipped)
+        .reduce((sum, e) => sum + e.bonus, 0);
+      return baseRate + equipmentBonus;
+    };
+
+    const rate = getCreditRate();
+    const newCredits = store.player.credits + rate;
+    store.updatePlayer({ credits: newCredits });
+
     // Update lastUpdate timestamp
     store.setLastUpdate(timestamp);
   }, []);
