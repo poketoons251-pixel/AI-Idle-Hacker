@@ -26,6 +26,7 @@
 **Goal:** Core idle game loop — resources generate, upgrades purchasable, hacking targets available
 **Mode:** mvp
 **Requirements:** ECON-01, ECON-02, ECON-03, ECON-04, ECON-05, ECON-06, HACK-01, HACK-02, HACK-03, HACK-04, HACK-05, UI-02, UI-05
+**Plans:** 3 plans
 **Success Criteria:**
 1. Player earns crypto passively at a visible rate
 2. Player can purchase at least 10 upgrades that increase generation rate
@@ -33,6 +34,11 @@
 4. Hacking produces terminal output simulating breach sequences
 5. Successful hacks yield resources and unlock harder targets
 6. Upgrade costs scale exponentially, creating meaningful progression
+
+Plans:
+- [ ] 02-01-PLAN.md — Economy foundation: passive credit generation, 11 upgrades, cost scaling, HUD rate display
+- [ ] 02-02-PLAN.md — Hacking gameplay: 5 targets, hack command with breach animation, reward/unlock flow
+- [ ] 02-03-PLAN.md — Upgrade UI + visual feedback: UpgradePanel sidebar, economy commands, counter flash/popups
 
 ### Phase 3: Persistence & Polish
 **Goal:** Player progress is saved, offline progress works, achievements track milestones
