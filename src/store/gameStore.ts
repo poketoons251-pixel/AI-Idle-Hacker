@@ -32,7 +32,7 @@ export interface Skills {
 export interface Equipment {
   id: string;
   name: string;
-  type: 'processor' | 'memory' | 'storage' | 'network' | 'ai_core';
+  type: 'hardware' | 'software';
   level: number;
   bonus: number;
   equipped: boolean;
@@ -509,6 +509,7 @@ interface GameState {
   gainExperience: (amount: number) => void;
   spendCredits: (amount: number) => boolean;
   regenerateEnergy: () => void;
+  getCreditRate: () => number;
   
   // Phase 6: Guild Actions
   createGuild: (name: string, description: string) => void;
@@ -608,15 +609,19 @@ const initialTargets: Target[] = [
 ];
 
 const initialEquipment: Equipment[] = [
-  {
-    id: 'eq-1',
-    name: 'Basic Laptop',
-    type: 'hardware',
-    level: 1,
-    bonus: 5,
-    equipped: true,
-    upgradeCost: 100,
-  },
+  // Hardware (6 items)
+  { id: 'eq-1', name: 'Basic Laptop', type: 'hardware', level: 1, bonus: 2, equipped: true, upgradeCost: 100 },
+  { id: 'eq-2', name: 'Server Rack', type: 'hardware', level: 1, bonus: 5, equipped: false, upgradeCost: 500 },
+  { id: 'eq-3', name: 'GPU Cluster', type: 'hardware', level: 1, bonus: 12, equipped: false, upgradeCost: 2500 },
+  { id: 'eq-4', name: 'Botnet Network', type: 'hardware', level: 1, bonus: 25, equipped: false, upgradeCost: 10000 },
+  { id: 'eq-5', name: 'Quantum Computer', type: 'hardware', level: 1, bonus: 60, equipped: false, upgradeCost: 50000 },
+  { id: 'eq-6', name: 'Satellite Uplink', type: 'hardware', level: 1, bonus: 150, equipped: false, upgradeCost: 250000 },
+  // Software (5 items)
+  { id: 'eq-7', name: 'Script Kiddie Tools', type: 'software', level: 1, bonus: 3, equipped: false, upgradeCost: 200 },
+  { id: 'eq-8', name: 'AI Assistant', type: 'software', level: 1, bonus: 8, equipped: false, upgradeCost: 1000 },
+  { id: 'eq-9', name: 'Neural Network', type: 'software', level: 1, bonus: 18, equipped: false, upgradeCost: 5000 },
+  { id: 'eq-10', name: 'Exploit Database', type: 'software', level: 1, bonus: 40, equipped: false, upgradeCost: 25000 },
+  { id: 'eq-11', name: 'Zero-Day Suite', type: 'software', level: 1, bonus: 100, equipped: false, upgradeCost: 100000 },
 ];
 
 const initialAchievements: Achievement[] = [
@@ -1840,7 +1845,7 @@ export const useGameStore = create<GameState>()((set, get) => {
 
       spendCredits: (amount) => {
         const state = get();
-        if (state.player.credits >= amount) {
+        if (state.player.credits >= amount && amount > 0) {
           state.updatePlayer({
             credits: state.player.credits - amount,
           });
@@ -1856,6 +1861,15 @@ export const useGameStore = create<GameState>()((set, get) => {
             energy: Math.min(state.player.energy + 1, state.player.maxEnergy),
           });
         }
+      },
+
+      getCreditRate: () => {
+        const state = get();
+        const baseRate = 5;
+        const equipmentBonus = state.equipment
+          .filter(e => e.equipped)
+          .reduce((sum, e) => sum + e.bonus, 0);
+        return baseRate + equipmentBonus;
       },
 
       // Narrative Actions
