@@ -1,8 +1,8 @@
 # Project State
 
 ## Current Phase
-**Phase:** Phase 1 COMPLETE ✓
-**Status:** Ready for Phase 2: Economy & Hacking
+**Phase:** Phase 2 Context Complete
+**Status:** Ready for /gsd-plan-phase 2
 
 ## Project Summary
 - **Name:** AI Idle Hacker
@@ -10,19 +10,27 @@
 - **Unique Feature:** AI auto-play capability
 - **Stack:** Vite + React + TypeScript + Supabase + Tailwind CSS + xterm.js + Zustand
 
+## Active Requirements
+33 v1 requirements mapped across 6 phases (see ROADMAP.md)
+
 ## Completed Phases
 - [x] Project initialization (2026-05-20)
 - [x] Phase 1: Terminal Foundation (2026-05-20) ✓
-  - xterm.js terminal with WebGL renderer + cyberpunk theme
-  - HUD bar with resource counters (Credits, Level, Energy, Reputation)
-  - Command registry with 4 system commands (help, clear, status, scan)
-  - CRT scanline overlay + neon glow effects
-  - Game loop Web Worker (10 ticks/sec, energy regeneration)
-  - Vite build passes cleanly
-  - All 6 requirements satisfied (TERM-01 through TERM-05, UI-01)
-  - All 5 success criteria verified
+  - xterm.js terminal, HUD bar, command registry, CRT effects, game loop worker
+  - All 6 requirements satisfied, Vite build passes
+- [x] Phase 2: Economy & Hacking Discussion (2026-05-20)
+  - CONTEXT.md created with 5 implementation decisions
+  - All gray areas resolved: both UI+terminal, multi-step hacking, 5 credits/sec, sidebar panel, moderate feedback
 
-## Next Phase
-**Phase 2: Economy & Hacking** — Core idle game loop: resources generate, upgrades purchasable, hacking targets available
-- 14 requirements: ECON-01 through ECON-06, HACK-01 through HACK-05, UI-02, UI-05
-- Run `/gsd-discuss-phase 2` to clarify approach
+## Memory
+- Phase 2 decisions locked:
+  - Both UI panel + terminal commands for upgrades
+  - Multi-step hacking (scan → select technique → execute → progress → result)
+  - 5 credits/sec base rate, 1.5x exponential cost scaling
+  - Collapsible sidebar panel for upgrades
+  - Moderate visual feedback (flash + popup + terminal line)
+- Existing infrastructure: gameStore has upgradeEquipment, startOperation, completeOperation actions
+- Operations page has target cards, HackingTechniqueSelector, active operations display
+
+## Next Step
+Run `/gsd-plan-phase 2` to create executable plan for Economy & Hacking
