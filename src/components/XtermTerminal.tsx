@@ -8,6 +8,7 @@ import type { ITerminalOptions, ITheme } from '@xterm/xterm';
 interface XtermTerminalProps {
   onCommand: (command: string) => void;
   className?: string;
+  onTerminalReady?: (term: Terminal) => void;
 }
 
 const cyberpunkTheme: ITheme = {
@@ -50,6 +51,7 @@ const terminalOptions: Partial<ITerminalOptions> = {
 export const XtermTerminal: React.FC<XtermTerminalProps> = ({
   onCommand,
   className,
+  onTerminalReady,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal | null>(null);
@@ -77,6 +79,9 @@ export const XtermTerminal: React.FC<XtermTerminalProps> = ({
 
     term.open(containerRef.current);
     fitAddon.fit();
+
+    // Notify parent that terminal is ready
+    onTerminalReady?.(term);
 
     // Boot message
     term.writeln('\x1b[1;32mAI Idle Hacker Terminal v2.1.0\x1b[0m');
