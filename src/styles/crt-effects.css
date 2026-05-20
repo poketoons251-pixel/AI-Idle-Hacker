@@ -80,3 +80,29 @@
   animation: crt-flicker 4s infinite;
   background: rgba(0, 255, 65, 0.01);
 }
+
+/* Resource flash animations */
+@keyframes flash-green {
+  0%, 100% { text-shadow: none; }
+  50% { text-shadow: 0 0 8px #00ff41, 0 0 16px #00ff41; }
+}
+
+@keyframes flash-pink {
+  0%, 100% { text-shadow: none; }
+  50% { text-shadow: 0 0 8px #ff0080, 0 0 16px #ff0080; }
+}
+
+@keyframes flash-cyan {
+  0%, 100% { text-shadow: none; }
+  50% { text-shadow: 0 0 8px #00d4ff, 0 0 16px #00d4ff; }
+}
+
+@keyframes float-up {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+
+.animate-flash-green { animation: flash-green 0.3s ease-in-out; }
+.animate-flash-pink { animation: flash-pink 0.3s ease-in-out; }
+.animate-flash-cyan { animation: flash-cyan 0.3s ease-in-out; }
+.animate-float-up { animation: float-up 1s ease-out forwards; }

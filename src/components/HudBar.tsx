@@ -1,6 +1,9 @@
 import React from 'react';
 import { DollarSign, Star, Zap, TrendingUp } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
+import { useResourceFlash } from '../hooks/useResourceFlash';
+import { AnimatedCounter } from './AnimatedCounter';
+import { FloatingPopup } from './FloatingPopup';
 
 export const HudBar: React.FC = () => {
   // Individual Zustand selectors to prevent re-render storms
@@ -10,8 +13,12 @@ export const HudBar: React.FC = () => {
   const energy = useGameStore((s) => s.player?.energy ?? 0);
   const maxEnergy = useGameStore((s) => s.player?.maxEnergy ?? 100);
   const reputation = useGameStore((s) => s.player?.reputation ?? 0);
+  const experience = useGameStore((s) => s.player?.experience ?? 0);
   const username = useGameStore((s) => s.player?.username ?? 'Anonymous');
   const creditsPerSecond = useGameStore((s) => s.getCreditRate?.() ?? 0);
+
+  // Resource flash detection
+  const { creditFlash, repFlash, xpFlash, creditPopup, repPopup, xpPopup } = useResourceFlash();
 
   const energyPercent = maxEnergy > 0 ? (energy / maxEnergy) * 100 : 0;
 
@@ -27,15 +34,16 @@ export const HudBar: React.FC = () => {
           {/* Resource Counters */}
           <div className="flex items-center gap-6 flex-wrap">
             {/* Credits */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative">
               <DollarSign className="w-4 h-4 text-cyber-accent flex-shrink-0" />
-              <div>
+              <div className="relative">
                 <div className="text-[10px] uppercase tracking-wider text-cyber-gray-lighter">
                   Credits
                 </div>
                 <div className="font-mono text-sm font-bold text-cyber-accent cyber-text-glow">
-                  {credits.toLocaleString()}
+                  <AnimatedCounter value={credits} isFlashing={creditFlash} flashColor="green" />
                 </div>
+                <FloatingPopup value={creditPopup ?? 0} color="green" />
                 <div className="flex items-center gap-1 text-[10px] text-cyber-accent/60 font-mono">
                   <span>+{creditsPerSecond}/sec</span>
                 </div>
@@ -52,6 +60,20 @@ export const HudBar: React.FC = () => {
                 <div className="font-mono text-sm font-bold text-cyber-secondary cyber-text-glow">
                   {level}
                 </div>
+              </div>
+            </div>
+
+            {/* Experience */}
+            <div className="flex items-center gap-2 relative">
+              <Star className="w-4 h-4 text-cyber-secondary flex-shrink-0" />
+              <div className="relative">
+                <div className="text-[10px] uppercase tracking-wider text-cyber-gray-lighter">
+                  XP
+                </div>
+                <div className="font-mono text-sm font-bold text-cyber-secondary cyber-text-glow">
+                  <AnimatedCounter value={experience} isFlashing={xpFlash} flashColor="cyan" />
+                </div>
+                <FloatingPopup value={xpPopup ?? 0} color="cyan" />
               </div>
             </div>
 
@@ -77,15 +99,16 @@ export const HudBar: React.FC = () => {
             </div>
 
             {/* Reputation */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative">
               <TrendingUp className="w-4 h-4 text-cyber-primary flex-shrink-0" />
-              <div>
+              <div className="relative">
                 <div className="text-[10px] uppercase tracking-wider text-cyber-gray-lighter">
                   Reputation
                 </div>
                 <div className="font-mono text-sm font-bold text-cyber-primary cyber-text-glow">
-                  {reputation}
+                  <AnimatedCounter value={reputation} isFlashing={repFlash} flashColor="pink" />
                 </div>
+                <FloatingPopup value={repPopup ?? 0} color="pink" />
               </div>
             </div>
           </div>
