@@ -1,8 +1,8 @@
 # Project State
 
 ## Current Phase
-**Phase:** Phase 1 Context Complete
-**Status:** Ready for /gsd-plan-phase 1
+**Phase:** Phase 1 COMPLETE ✓
+**Status:** Ready for Phase 2: Economy & Hacking
 
 ## Project Summary
 - **Name:** AI Idle Hacker
@@ -10,54 +10,19 @@
 - **Unique Feature:** AI auto-play capability
 - **Stack:** Vite + React + TypeScript + Supabase + Tailwind CSS + xterm.js + Zustand
 
-## Active Requirements
-33 v1 requirements mapped across 6 phases (see ROADMAP.md)
-
 ## Completed Phases
 - [x] Project initialization (2026-05-20)
-  - PROJECT.md, config.json, research docs, REQUIREMENTS.md, ROADMAP.md created
-- [x] Phase 1 discussion (2026-05-20)
-  - CONTEXT.md created with 5 implementation decisions
-  - All gray areas resolved: xterm.js replace, Web Worker, HUD bar, command registry, CRT+glow
-- [x] Phase 1 Plan 01: Xterm.js Installation and React Wrapper (2026-05-20)
-  - Installed @xterm/xterm@6.0.0 with fit, webgl, canvas addons
-  - Created XtermTerminal.tsx with cyberpunk theme and React 18 Strict Mode cleanup
-  - Self-hosted JetBrains Mono font via @fontsource
-  - 3 commits: 607f4e3, e1928c6, 1833031
-- [x] Phase 1 Plan 02: HUD Bar Resource Counters (2026-05-20)
-  - Created HudBar.tsx with individual Zustand selectors (credits, level, energy, reputation)
-  - Energy displayed as fraction with mini progress bar
-  - Integrated HudBar into Layout.tsx between Navigation and main content
-  - 2 commits: d2975f3, 54306c0
-- [x] Phase 1 Plan 03: Command Registry, CRT Effects & TerminalContainer (2026-05-20)
-  - Created commandRegistry.ts (typed registry with handler map), terminalColors.ts (11 ANSI helpers)
-  - Created system.ts registering help/clear/status/scan commands
-  - Created crt-effects.css with scanlines, flicker, animated scanline bar
-  - Created TerminalContainer.tsx wrapping XtermTerminal with CRT overlays
-  - Added onTerminalReady prop to XtermTerminal for Terminal instance access
-  - 2 commits: 2dc915e, 4e3405f
+- [x] Phase 1: Terminal Foundation (2026-05-20) ✓
+  - xterm.js terminal with WebGL renderer + cyberpunk theme
+  - HUD bar with resource counters (Credits, Level, Energy, Reputation)
+  - Command registry with 4 system commands (help, clear, status, scan)
+  - CRT scanline overlay + neon glow effects
+  - Game loop Web Worker (10 ticks/sec, energy regeneration)
+  - Vite build passes cleanly
+  - All 6 requirements satisfied (TERM-01 through TERM-05, UI-01)
+  - All 5 success criteria verified
 
-## Memory
-- Existing codebase has substantial scaffolding: gameStore.ts (2331 lines), TerminalInterface.tsx (235 lines), idleWorker.ts, useIdleProgression.ts, 25+ components
-- Phase 1 decisions locked:
-  - Replace TerminalInterface with xterm.js + WebGL addon
-  - Web Worker for game loop (reuse existing idleWorker infrastructure)
-  - HUD bar at top for resource counters
-  - Command registry pattern (not hardcoded switch)
-  - CRT scanlines + neon glow for cyberpunk effects
-  - Zustand store is single source of truth
-- XtermTerminal.tsx created but NOT yet integrated — TerminalInterface.tsx still active (replacement in Plan 03)
-- addon-canvas peer dep conflict with xterm v6 resolved via --legacy-peer-deps (canvas is fallback-only)
-
-- [x] Phase 1 Plan 04: Game Loop Skeleton & Dashboard Integration (2026-05-20)
-  - Created gameLoopWorker.ts — dedicated tick timer (10 ticks/sec, setTimeout-based)
-  - Created useGameLoop.ts — worker lifecycle hook with tick accumulator (1-sec batching)
-  - Integrated TerminalContainer into Dashboard as first major section
-  - Energy regeneration: +1 energy/sec, capped at maxEnergy
-  - Terminal receives [SYSTEM] messages every 5 seconds
-  - Visibility change handler for future offline progress
-  - Fixed pre-existing EnhancedQuestSystem import alias bug
-  - 3 commits: bc182a7, c8d20b2, 76bb41d
-
-## Next Step
-Phase 1 complete — all 4 plans executed. Ready for verification and Phase 2 planning.
+## Next Phase
+**Phase 2: Economy & Hacking** — Core idle game loop: resources generate, upgrades purchasable, hacking targets available
+- 14 requirements: ECON-01 through ECON-06, HACK-01 through HACK-05, UI-02, UI-05
+- Run `/gsd-discuss-phase 2` to clarify approach
