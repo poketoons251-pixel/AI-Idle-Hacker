@@ -19,6 +19,11 @@
 - [x] Phase 1 discussion (2026-05-20)
   - CONTEXT.md created with 5 implementation decisions
   - All gray areas resolved: xterm.js replace, Web Worker, HUD bar, command registry, CRT+glow
+- [x] Phase 1 Plan 01: Xterm.js Installation and React Wrapper (2026-05-20)
+  - Installed @xterm/xterm@6.0.0 with fit, webgl, canvas addons
+  - Created XtermTerminal.tsx with cyberpunk theme and React 18 Strict Mode cleanup
+  - Self-hosted JetBrains Mono font via @fontsource
+  - 3 commits: 607f4e3, e1928c6, 1833031
 
 ## Memory
 - Existing codebase has substantial scaffolding: gameStore.ts (2331 lines), TerminalInterface.tsx (235 lines), idleWorker.ts, useIdleProgression.ts, 25+ components
@@ -29,6 +34,8 @@
   - Command registry pattern (not hardcoded switch)
   - CRT scanlines + neon glow for cyberpunk effects
   - Zustand store is single source of truth
+- XtermTerminal.tsx created but NOT yet integrated — TerminalInterface.tsx still active (replacement in Plan 03)
+- addon-canvas peer dep conflict with xterm v6 resolved via --legacy-peer-deps (canvas is fallback-only)
 
 ## Next Step
-Run `/gsd-plan-phase 1` to create executable plan for Terminal Foundation
+Execute remaining Phase 1 plans: 01-02, 01-03, 01-04
