@@ -8,6 +8,7 @@ import '../styles/crt-effects.css';
 // Side-effect import: registers system commands
 import '../commands/system';
 import '../commands/hacking';
+import '../commands/economy';
 
 interface TerminalContainerProps {
   onTerminalReady?: (term: Terminal) => void;

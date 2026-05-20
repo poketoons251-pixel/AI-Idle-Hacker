@@ -7,6 +7,7 @@ export const Colors = {
   brightGreen: (text: string) => `\x1b[1;32m${text}\x1b[0m`,
   pink: (text: string) => `\x1b[35m${text}\x1b[0m`,
   brightPink: (text: string) => `\x1b[1;35m${text}\x1b[0m`,
+  brightMagenta: (text: string) => `\x1b[1;35m${text}\x1b[0m`,
   cyan: (text: string) => `\x1b[36m${text}\x1b[0m`,
   brightCyan: (text: string) => `\x1b[1;36m${text}\x1b[0m`,
   red: (text: string) => `\x1b[31m${text}\x1b[0m`,
