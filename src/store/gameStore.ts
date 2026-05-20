@@ -606,6 +606,24 @@ const initialTargets: Target[] = [
     rewards: { credits: 300, experience: 150, reputation: 8 },
     unlocked: false,
   },
+  {
+    id: 'target-4',
+    name: 'Regional Bank Server',
+    type: 'corporation',
+    difficulty: 4,
+    securityLevel: 5,
+    rewards: { credits: 800, experience: 400, reputation: 20 },
+    unlocked: false,
+  },
+  {
+    id: 'target-5',
+    name: 'Government Data Vault',
+    type: 'government',
+    difficulty: 5,
+    securityLevel: 7,
+    rewards: { credits: 2000, experience: 1000, reputation: 50 },
+    unlocked: false,
+  },
 ];
 
 const initialEquipment: Equipment[] = [
