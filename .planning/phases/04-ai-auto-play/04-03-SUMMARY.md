@@ -151,11 +151,4 @@ None. All functionality is wired end-to-end:
 
 ## Self-Check: PASSED
 
-- [x] api/functions/ai-decision.ts exists (360 lines)
-- [x] src/lib/aiEdgeFunctionClient.ts exists (141 lines)
-- [x] src/lib/aiDecisionEngine.ts modified (makeStrategicDecisionWithLLM added)
-- [x] src/store/gameStore.ts modified (makeAIDecision async)
-- [x] src/hooks/useGameLoop.ts modified (async handling)
-- [x] src/pages/AIAutoplay.tsx modified (async handling)
-- [x] Commit 8b127c6 exists
-- [x] Commit cffb405 exists
+All 8 files verified present. All 3 commits verified in git log.
