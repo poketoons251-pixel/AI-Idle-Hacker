@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { idbStorage } from '../lib/idbStorage';
 import { calculateReward, RewardCalculationContext } from '../utils/rewardCalculator';
+import { makeStrategicDecision, type StrategicContext } from '../lib/aiDecisionEngine';
 
 export interface Player {
   id: string;
@@ -249,6 +250,8 @@ export interface AIDecision {
   // Hacking technique properties
   techniqueId?: string;
   targetInfo?: string;
+  // Operation type for start_operation decisions
+  operationType?: string;
 }
 
 // Phase 6: Guild System Interfaces
@@ -683,7 +686,7 @@ const initialAIConfig: AIConfig = {
     operations: 0.4,
     upgrades: 0.3,
     equipment: 0.2,
-    reserve: 0.1,
+    reserve: 0.2,
   },
   autoUpgrade: true,
   energyManagement: true,
@@ -1618,55 +1621,20 @@ export const useGameStore = create<GameState>()(
         const state = get();
         if (!state.aiConfig.enabled || !state.aiActive) return null;
 
-        const { priorities, riskTolerance, resourceAllocation } = state.aiConfig;
-        const { player, operations, targets, equipment } = state;
+        // Build strategic context from current game state
+        const ctx: StrategicContext = {
+          credits: state.player.credits,
+          creditsPerSecond: state.getCreditRate(),
+          level: state.player.level,
+          energy: state.player.energy,
+          skillPoints: state.player.skillPoints,
+          equipment: state.equipment,
+          targets: state.targets,
+          aiConfig: state.aiConfig,
+        };
 
-        // Check if we should start a new operation
-        if (Math.random() < priorities.operations && operations.filter(op => op.status === 'active').length < 3) {
-          const availableTargets = targets.filter(t => t.unlocked && t.difficulty <= player.level + 2);
-          if (availableTargets.length > 0) {
-            // Select target based on risk tolerance
-            const sortedTargets = availableTargets.sort((a, b) => {
-              const riskA = a.difficulty / player.level;
-              const riskB = b.difficulty / player.level;
-              const preferredRisk = riskTolerance;
-              return Math.abs(riskA - preferredRisk) - Math.abs(riskB - preferredRisk);
-            });
-            
-            const selectedTarget = sortedTargets[0];
-            const operationTypes: Operation['type'][] = ['data_breach', 'crypto_mining', 'ddos', 'social_engineering'];
-            const selectedType = operationTypes[Math.floor(Math.random() * operationTypes.length)];
-
-            return {
-              type: 'start_operation',
-              targetId: selectedTarget.id,
-              operationType: selectedType,
-              action: `start_operation_${selectedTarget.id}_${selectedType}`,
-              reasoning: `Starting ${selectedType} on ${selectedTarget.name} (difficulty: ${selectedTarget.difficulty}, risk tolerance: ${riskTolerance})`,
-              confidence: Math.max(0.3, 1 - (selectedTarget.difficulty / player.level)),
-              timestamp: new Date(),
-              description: `AI started ${selectedType} operation on ${selectedTarget.name}`,
-            };
-          }
-        }
-
-        // Check if we should upgrade equipment
-        if (Math.random() < priorities.upgrades && player.credits > 500) {
-          const upgradeableEquipment = equipment.filter(e => e.equipped && e.level < 10);
-          if (upgradeableEquipment.length > 0) {
-            const selectedEquipment = upgradeableEquipment[0];
-            return {
-              type: 'upgrade_equipment',
-              targetId: selectedEquipment.id,
-              reasoning: `Upgrading ${selectedEquipment.name} to improve performance`,
-              confidence: 0.8,
-              timestamp: new Date(),
-              description: `AI upgraded ${selectedEquipment.name}`,
-            };
-          }
-        }
-
-        return null;
+        // Delegate to the strategic decision engine
+        return makeStrategicDecision(ctx);
       },
 
       executeAIDecision: async (decision) => {
