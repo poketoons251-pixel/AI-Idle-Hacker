@@ -70,6 +70,11 @@ Plans:
 5. AI runs via Supabase Edge Functions, not browser-side LLM calls
 6. Game state is correctly passed to and from AI decision loop
 
+Plans:
+- [ ] 04-01-PLAN.md — AI toggle controls (HUD + terminal), game loop integration, terminal reasoning output
+- [ ] 04-02-PLAN.md — Strategic decision engine (ROI-based upgrades, target selection), AI settings panel
+- [ ] 04-03-PLAN.md — Supabase Edge Function for LLM decisions, hybrid AI integration
+
 ### Phase 5: Supabase Integration
 **Goal:** Cloud sync, authentication, and real-time features connect the game to the backend
 **Mode:** mvp
