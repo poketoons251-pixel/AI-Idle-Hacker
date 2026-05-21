@@ -71,20 +71,26 @@ Plans:
 6. Game state is correctly passed to and from AI decision loop
 
 Plans:
-- [ ] 04-01-PLAN.md — AI toggle controls (HUD + terminal), game loop integration, terminal reasoning output
-- [ ] 04-02-PLAN.md — Strategic decision engine (ROI-based upgrades, target selection), AI settings panel
-- [ ] 04-03-PLAN.md — Supabase Edge Function for LLM decisions, hybrid AI integration
+- [x] 04-01-PLAN.md — AI toggle controls (HUD + terminal), game loop integration, terminal reasoning output
+- [x] 04-02-PLAN.md — Strategic decision engine (ROI-based upgrades, target selection), AI settings panel
+- [x] 04-03-PLAN.md — Supabase Edge Function for LLM decisions, hybrid AI integration
 
 ### Phase 5: Supabase Integration
 **Goal:** Cloud sync, authentication, and real-time features connect the game to the backend
 **Mode:** mvp
 **Requirements:** (cloud sync foundation for v2 features)
+**Plans:** 3 plans
 **Success Criteria:**
 1. Player can authenticate with Supabase auth
 2. Game state syncs to cloud database on save
 3. Player can load saves from cloud on different devices
 4. Realtime channels ready for future leaderboard features
 5. Edge Functions deployed and callable for AI auto-play
+
+Plans:
+- [ ] 05-01-PLAN.md — Auth + DB schema: anonymous-first auth, OAuth linking, game_saves/player_profiles/leaderboards tables with RLS
+- [ ] 05-02-PLAN.md — Cloud sync service: save/load with last-write-wins, Zustand integration, conflict detection
+- [ ] 05-03-PLAN.md — Leaderboards + realtime: real Supabase data, realtime subscriptions, Edge Function deprecation
 
 ### Phase 6: Content & Polish
 **Goal:** Game feels complete — animations, sound, content depth, and final polish
