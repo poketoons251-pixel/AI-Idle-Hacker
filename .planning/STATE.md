@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-21T03:45:00.000Z"
+last_updated: "2026-05-21T04:00:00.000Z"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
-  completed_plans: 12
-  percent: 92
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -17,7 +17,7 @@ progress:
 ## Current Phase
 
 **Phase:** Phase 4 Plans Created
-**Status:** Plan 02 executed
+**Status:** Plan 03 executed — AI Edge Functions integration complete
 
 ## Project Summary
 
@@ -51,6 +51,14 @@ progress:
   - 20% credit reserve enforcement
   - AI settings panel with risk tolerance, reserve, and priority controls
   - Settings accessible from HUD via gear button next to AI toggle
+- [x] Phase 4 Plan 03: AI Edge Functions Integration (2026-05-21) ✓
+  - Supabase Edge Function created (api/functions/ai-decision.ts, 360 lines)
+  - Calls Anthropic Claude Haiku for strategic decisions
+  - Validates AIDecision type, targetId, confidence range
+  - Edge Function client with rate limiting (30s) and 30s timeout
+  - Hybrid decision engine: rules-based for high confidence, LLM for low confidence
+  - Graceful fallback: LLM failure → rules-based decision
+  - Game loop handles async decisions non-blocking
 
 ## Memory
 
@@ -62,7 +70,8 @@ progress:
   - Toggle: HUD button + terminal command (`ai on/off`)
 - Existing infrastructure: gameStore has AI actions, Supabase Edge Functions directory exists
 - Plan 02 decisions: separate module for decision logic, operationType added to AIDecision, initial reserve changed to 0.2
+- Plan 03 decisions: Claude Haiku for cost-effective strategic decisions, 30s rate limit, hybrid threshold confidence < 0.5 AND riskTolerance > 0.4
 
 ## Next Step
 
-Execute Phase 4 Plan 03 (AI Edge Functions integration) or verify Plan 02
+Phase 4 complete (all 3 plans executed). Proceed to Phase 5 or verify Phase 4 integration.
