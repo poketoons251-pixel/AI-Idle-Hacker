@@ -1,8 +1,8 @@
 # Project State
 
 ## Current Phase
-**Phase:** Phase 3 COMPLETE ✓
-**Status:** Ready for Phase 4: AI Auto-Play
+**Phase:** Phase 4 Context Complete
+**Status:** Ready for /gsd-plan-phase 4
 
 ## Project Summary
 - **Name:** AI Idle Hacker
@@ -10,21 +10,26 @@
 - **Unique Feature:** AI auto-play capability
 - **Stack:** Vite + React + TypeScript + Supabase + Tailwind CSS + xterm.js + Zustand
 
+## Active Requirements
+33 v1 requirements mapped across 6 phases (see ROADMAP.md)
+
 ## Completed Phases
 - [x] Project initialization (2026-05-20)
 - [x] Phase 1: Terminal Foundation (2026-05-20) ✓
 - [x] Phase 2: Economy & Hacking (2026-05-20) ✓
 - [x] Phase 3: Persistence & Polish (2026-05-21) ✓
-  - IndexedDB persistence via idb-keyval
-  - Auto-save every 30s + beforeunload handler
-  - Offline progress (8h cap, diminishing returns after 2h)
-  - Save export/import (base64 JSON + clipboard)
-  - 18 auto-detected achievements with terminal + popup notifications
-  - Settings page with sound toggle, save management, display prefs
-  - Responsive layout (sm/md/lg breakpoints)
-  - Vite build passes, 28 tests passing
+- [x] Phase 4: AI Auto-Play Discussion (2026-05-21)
+  - CONTEXT.md created with 5 implementation decisions
+  - All gray areas resolved: 10s decision frequency, hybrid strategy, summary reasoning, 20% reserve, HUD + terminal toggle
 
-## Next Phase
-**Phase 4: AI Auto-Play** — AI agent plays autonomously, strategic decisions visible in terminal
-- 5 requirements: AI-01 through AI-05
-- Run `/gsd-discuss-phase 4` to clarify approach
+## Memory
+- Phase 4 decisions locked:
+  - AI decision frequency: every 10 seconds
+  - Hybrid strategy: rules-based + LLM via Edge Functions
+  - Summary reasoning visibility: `[AI] Analyzing... → Action`
+  - Resource allocation: reserve 20%, configurable risk tolerance
+  - Toggle: HUD button + terminal command (`ai on/off`)
+- Existing infrastructure: gameStore has AI actions, Supabase Edge Functions directory exists
+
+## Next Step
+Run `/gsd-plan-phase 4` to create executable plan for AI Auto-Play
