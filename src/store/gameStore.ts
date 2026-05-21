@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { idbStorage } from '../lib/idbStorage';
 import { calculateReward, RewardCalculationContext } from '../utils/rewardCalculator';
-import { makeStrategicDecision, makeStrategicDecisionWithLLM, type StrategicContext } from '../lib/aiDecisionEngine';
+import { makeStrategicDecision, type StrategicContext } from '../lib/aiDecisionEngine';
 import { saveToCloud, loadFromCloud, checkSyncConflict } from '../lib/cloudSyncService';
 
 export interface Player {
@@ -505,7 +505,7 @@ export interface GameState {
   updateAIAnalytics: (updates: Partial<AIAnalytics>) => void;
   toggleAI: () => void;
   recordAIDecision: (decision: AIDecision, result: 'success' | 'failure') => void;
-  makeAIDecision: () => Promise<AIDecision | null>;
+  makeAIDecision: () => AIDecision | null;
   executeAIDecision: (decision: AIDecision) => void;
   resetAIAnalytics: () => void;
   
@@ -1640,7 +1640,7 @@ export const useGameStore = create<GameState>()(
         }));
       },
 
-      makeAIDecision: async () => {
+      makeAIDecision: () => {
         const state = get();
         if (!state.aiConfig.enabled || !state.aiActive) return null;
 
@@ -1656,8 +1656,8 @@ export const useGameStore = create<GameState>()(
           aiConfig: state.aiConfig,
         };
 
-        // Delegate to the hybrid decision engine (rules + LLM fallback)
-        return makeStrategicDecisionWithLLM(ctx);
+        // Per D-04: Rules-based AI runs entirely in browser — no API calls
+        return makeStrategicDecision(ctx);
       },
 
       executeAIDecision: async (decision) => {

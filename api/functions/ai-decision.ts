@@ -1,4 +1,7 @@
 /**
+ * DEPRECATED per D-04: Edge Functions not needed — rules-based AI runs in browser.
+ * This file is kept for reference only. Remove in future cleanup.
+ *
  * Supabase Edge Function: AI Decision Making
  * 
  * Receives game state from the client, calls an LLM (Anthropic Claude Haiku)

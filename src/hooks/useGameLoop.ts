@@ -83,22 +83,21 @@ export function useGameLoop(options: GameLoopOptions = {}) {
 
       const currentState = storeRef.current.getState();
       if (currentState.aiActive) {
-        currentState.makeAIDecision().then((decision) => {
-          if (decision) {
-            // Dispatch AI reasoning to terminal via CustomEvent
-            window.dispatchEvent(new CustomEvent('ai-terminal-output', {
-              detail: { text: `\x1b[36m[AI] Analyzing... ${decision.reasoning}\x1b[0m` },
-            }));
+        const decision = currentState.makeAIDecision();
+        if (decision) {
+          // Dispatch AI reasoning to terminal via CustomEvent
+          window.dispatchEvent(new CustomEvent('ai-terminal-output', {
+            detail: { text: `\x1b[36m[AI] Analyzing... ${decision.reasoning}\x1b[0m` },
+          }));
 
-            // Execute the decision
-            currentState.executeAIDecision(decision);
+          // Execute the decision
+          currentState.executeAIDecision(decision);
 
-            // Dispatch result to terminal
-            window.dispatchEvent(new CustomEvent('ai-terminal-output', {
-              detail: { text: `\x1b[36m[AI] ${decision.description}\x1b[0m` },
-            }));
-          }
-        });
+          // Dispatch result to terminal
+          window.dispatchEvent(new CustomEvent('ai-terminal-output', {
+            detail: { text: `\x1b[36m[AI] ${decision.description}\x1b[0m` },
+          }));
+        }
       }
     }
 

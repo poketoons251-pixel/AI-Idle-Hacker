@@ -1,19 +1,16 @@
 /**
  * AI Decision Engine — Strategic rules-based decision making for AI auto-play.
- * 
- * Hybrid architecture: This module handles rules-based decisions (ROI calculations,
- * priority-weighted action selection, reserve enforcement). LLM strategic override
- * via Supabase Edge Functions for low-confidence decisions.
- * 
+ *
+ * Per D-04: Rules-based AI runs 100% in browser — no API calls, no Edge Functions.
+ * The Edge Function client (aiEdgeFunctionClient.ts) is deprecated and no longer used.
+ *
  * Design decisions:
- * - D-02: Hybrid — rules for routine (confidence >= 0.5), LLM for strategic (confidence < 0.5)
  * - D-03: Reasoning strings in summary format with specific numbers
  * - D-04: 20% credit reserve enforced (configurable via aiConfig.resourceAllocation.reserve)
- * 
- * Hybrid flow:
- * 1. makeStrategicDecision() — synchronous rules-based evaluation (fast path)
- * 2. makeStrategicDecisionWithLLM() — async, calls LLM when rules confidence < 0.5
- * 3. LLM fallback: if Edge Function fails, rules-based decision is used
+ *
+ * Flow:
+ * 1. makeStrategicDecision() — synchronous rules-based evaluation (ROI, risk-adjusted targets, priority weighting)
+ * 2. Returns AIDecision or null if no action is viable
  */
 
 import type {
@@ -22,7 +19,6 @@ import type {
   AIConfig,
   AIDecision,
 } from '../store/gameStore';
-import { fetchAIDecision, type EdgeFunctionRequest } from './aiEdgeFunctionClient';
 
 export interface StrategicContext {
   credits: number;
@@ -235,110 +231,4 @@ export function makeStrategicDecision(ctx: StrategicContext): AIDecision | null 
 
   // No viable action
   return null;
-}
-
-/**
- * Make a strategic decision with LLM enhancement for low-confidence moments.
- * 
- * Hybrid decision flow:
- * 1. Evaluate rules-based decision first (fast, no network)
- * 2. If rules confidence >= 0.5 → return rules-based decision (routine)
- * 3. If rules confidence < 0.5 AND riskTolerance > 0.4 → consult LLM
- * 4. If LLM returns valid decision → use it with "LLM consulted:" reasoning
- * 5. If LLM fails → fall back to rules-based decision
- * 
- * This creates the hybrid pattern per D-02:
- * - Routine decisions (high confidence) → fast, no network call
- * - Strategic decisions (low confidence) → LLM-enhanced via Edge Function
- * - Fallback: if LLM unavailable, rules-based still works
- * 
- * @param ctx - Strategic context with current game state
- * @returns AIDecision or null if no action is viable
- */
-export async function makeStrategicDecisionWithLLM(ctx: StrategicContext): Promise<AIDecision | null> {
-  // Step 1: Get rules-based decision
-  const rulesDecision = makeStrategicDecision(ctx);
-
-  // If no rules-based decision, try LLM anyway for creative options
-  if (!rulesDecision) {
-    try {
-      const request = buildEdgeFunctionRequest(ctx);
-      const response = await fetchAIDecision(request);
-      if (response.decision) {
-        return {
-          ...response.decision,
-          reasoning: `LLM consulted (no rules-based option): ${response.decision.reasoning}`,
-        };
-      }
-    } catch {
-      // LLM unavailable — no decision possible
-    }
-    return null;
-  }
-
-  // Step 2: Check if LLM consultation is needed
-  const needsLLM = rulesDecision.confidence < 0.5 && ctx.aiConfig.riskTolerance > 0.4;
-
-  if (!needsLLM) {
-    // High confidence or low risk tolerance — use rules-based
-    return rulesDecision;
-  }
-
-  // Step 3: Consult LLM for strategic enhancement
-  try {
-    const request = buildEdgeFunctionRequest(ctx);
-    const response = await fetchAIDecision(request);
-
-    if (response.decision) {
-      // LLM returned a valid decision — use it with attribution
-      return {
-        ...response.decision,
-        reasoning: `LLM consulted (rules confidence ${(rulesDecision.confidence * 100).toFixed(0)}%): ${response.decision.reasoning}`,
-      };
-    }
-
-    // LLM returned null or error — fall back to rules-based
-    console.log(`[AI] LLM unavailable (${response.error}), falling back to rules-based decision`);
-    return rulesDecision;
-  } catch (e) {
-    // Network error or other failure — fall back to rules-based
-    console.log(`[AI] LLM call failed (${e instanceof Error ? e.message : 'unknown'}), falling back to rules-based`);
-    return rulesDecision;
-  }
-}
-
-/**
- * Build an EdgeFunctionRequest from the current strategic context.
- * Maps game state to the format expected by the Edge Function.
- */
-function buildEdgeFunctionRequest(ctx: StrategicContext): EdgeFunctionRequest {
-  return {
-    gameState: {
-      credits: ctx.credits,
-      creditsPerSecond: ctx.creditsPerSecond,
-      level: ctx.level,
-      energy: ctx.energy,
-      skillPoints: ctx.skillPoints,
-      equipment: ctx.equipment.map((e) => ({
-        id: e.id,
-        name: e.name,
-        level: e.level,
-        bonus: e.bonus,
-        equipped: e.equipped,
-        upgradeCost: e.upgradeCost,
-      })),
-      targets: ctx.targets.map((t) => ({
-        id: t.id,
-        name: t.name,
-        difficulty: t.difficulty,
-        rewards: { credits: t.rewards.credits },
-      })),
-      aiConfig: {
-        priorities: ctx.aiConfig.priorities,
-        riskTolerance: ctx.aiConfig.riskTolerance,
-        resourceAllocation: ctx.aiConfig.resourceAllocation,
-      },
-    },
-    recentActions: [], // Populated by caller if available
-  };
 }

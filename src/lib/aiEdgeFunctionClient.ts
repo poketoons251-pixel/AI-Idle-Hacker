@@ -1,4 +1,7 @@
 /**
+ * DEPRECATED per D-04: Edge Functions not needed — rules-based AI runs in browser.
+ * This file is kept for reference only. Remove in future cleanup.
+ *
  * AI Edge Function Client — Browser-side wrapper for calling the Supabase
  * Edge Function that runs LLM-enhanced strategic decisions.
  * 
