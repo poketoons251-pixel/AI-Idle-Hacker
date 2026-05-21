@@ -125,6 +125,15 @@ export const XtermTerminal: React.FC<XtermTerminalProps> = ({
     terminalRef.current = term;
     fitAddonRef.current = fitAddon;
 
+    // Subscribe to AI terminal output events
+    const handleAIOutput = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (terminalRef.current && customEvent.detail?.text) {
+        terminalRef.current.writeln(customEvent.detail.text);
+      }
+    };
+    window.addEventListener('ai-terminal-output', handleAIOutput);
+
     // ResizeObserver with requestAnimationFrame debounce
     const resizeObserver = new ResizeObserver(() => {
       requestAnimationFrame(() => {
@@ -138,6 +147,7 @@ export const XtermTerminal: React.FC<XtermTerminalProps> = ({
     // Cleanup — CRITICAL for React 18 Strict Mode
     return () => {
       resizeObserver.disconnect();
+      window.removeEventListener('ai-terminal-output', handleAIOutput);
       if (terminalRef.current) {
         terminalRef.current.dispose();
         terminalRef.current = null;

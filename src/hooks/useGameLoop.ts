@@ -8,6 +8,7 @@ interface GameLoopOptions {
 export function useGameLoop(options: GameLoopOptions = {}) {
   const workerRef = useRef<Worker | null>(null);
   const tickAccumulatorRef = useRef<number>(0);
+  const aiDecisionCounterRef = useRef<number>(0);
   const { onTick } = options;
 
   // Use Zustand getState() to avoid re-render dependencies
@@ -74,6 +75,31 @@ export function useGameLoop(options: GameLoopOptions = {}) {
     const rate = getCreditRate();
     const newCredits = store.player.credits + rate;
     store.updatePlayer({ credits: newCredits });
+
+    // AI decision loop — runs every 10 seconds (10 × 1-second ticks)
+    aiDecisionCounterRef.current++;
+    if (aiDecisionCounterRef.current >= 10) {
+      aiDecisionCounterRef.current = 0;
+
+      const currentState = storeRef.current.getState();
+      if (currentState.aiActive) {
+        const decision = currentState.makeAIDecision();
+        if (decision) {
+          // Dispatch AI reasoning to terminal via CustomEvent
+          window.dispatchEvent(new CustomEvent('ai-terminal-output', {
+            detail: { text: `\x1b[36m[AI] Analyzing... ${decision.reasoning}\x1b[0m` },
+          }));
+
+          // Execute the decision
+          currentState.executeAIDecision(decision);
+
+          // Dispatch result to terminal
+          window.dispatchEvent(new CustomEvent('ai-terminal-output', {
+            detail: { text: `\x1b[36m[AI] ${decision.description}\x1b[0m` },
+          }));
+        }
+      }
+    }
 
     // Update lastUpdate timestamp
     store.setLastUpdate(timestamp);
