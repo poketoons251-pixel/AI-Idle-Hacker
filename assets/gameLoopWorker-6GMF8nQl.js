@@ -1,0 +1,1 @@
+(function(){"use strict";let t=0,s=!1,e=null;function n(){s&&(t++,self.postMessage({type:"TICK",tick:t,timestamp:Date.now()}),e=setTimeout(n,100))}self.onmessage=i=>{const{type:a}=i.data;switch(a){case"START":s=!0,t=0,n();break;case"STOP":s=!1,e&&(clearTimeout(e),e=null);break}}})();
