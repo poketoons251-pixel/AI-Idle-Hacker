@@ -38,9 +38,16 @@ export function useGameLoop(options: GameLoopOptions = {}) {
     // Start the loop
     workerRef.current.postMessage({ type: 'START' });
 
+    // Auto-save every 30 seconds (triggers persist via lastUpdate change)
+    const saveInterval = setInterval(() => {
+      const store = storeRef.current.getState();
+      store.setLastUpdate(Date.now());
+    }, 30000);
+
     return () => {
       workerRef.current?.postMessage({ type: 'STOP' });
       workerRef.current?.terminate();
+      clearInterval(saveInterval);
     };
   }, [onTick]);
 
@@ -72,19 +79,51 @@ export function useGameLoop(options: GameLoopOptions = {}) {
     store.setLastUpdate(timestamp);
   }, []);
 
-  // Visibility change handling
+  // Visibility change handling + beforeunload + offline progress
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) {
         // Record time when tab goes hidden
         storeRef.current.getState().setLastUpdate(Date.now());
+      } else {
+        // Tab became visible — calculate offline progress
+        const store = storeRef.current.getState();
+        const now = Date.now();
+        const elapsed = (now - store.lastUpdate) / 1000; // seconds
+
+        if (elapsed > 5) { // Only calculate if away for more than 5 seconds
+          const rate = store.getCreditRate();
+
+          // 8-hour cap with diminishing returns after 2 hours
+          // Formula: min(elapsed, 8h) × rate × (elapsed > 2h ? 0.5 : 1.0)
+          const cappedSeconds = Math.min(elapsed, 8 * 3600); // 8h = 28800s
+          const diminishingMultiplier = elapsed > 2 * 3600 ? 0.5 : 1.0; // 2h = 7200s
+          const offlineCredits = Math.floor(cappedSeconds * rate * diminishingMultiplier);
+
+          if (offlineCredits > 0) {
+            store.updatePlayer({
+              credits: store.player.credits + offlineCredits,
+            });
+            store.addNotification(
+              `Welcome back! Earned ${offlineCredits.toLocaleString()} credits while away (${Math.floor(elapsed / 60)}min)`,
+              'info'
+            );
+          }
+        }
       }
-      // On return, the tick loop continues — no special handling needed
-      // for Phase 1 skeleton. Phase 3 will add offline progress calculation.
+    };
+
+    const handleBeforeUnload = () => {
+      const store = storeRef.current.getState();
+      store.setLastUpdate(Date.now());
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   return {

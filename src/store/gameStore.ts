@@ -2,6 +2,7 @@
 /* eslint-disable semi */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbStorage } from '../lib/idbStorage';
 import { calculateReward, RewardCalculationContext } from '../utils/rewardCalculator';
 
 export interface Player {
@@ -1018,7 +1019,9 @@ const initialLoreEntries: LoreEntry[] = [
   },
 ];
 
-export const useGameStore = create<GameState>()((set, get) => {
+export const useGameStore = create<GameState>()(
+  persist(
+    (set, get) => {
       console.log('🎮 GameStore: Initializing with data:', {
         player: initialPlayer,
         targets: initialTargets,
@@ -2345,19 +2348,19 @@ export const useGameStore = create<GameState>()((set, get) => {
         }
       },
     };
-});
-
-// Temporarily disabled persist to debug data loading
-// persist(
-//   {
-//     name: 'ai-idle-hacker-game',
-//     partialize: (state) => ({
-//       player: state.player,
-//       skills: state.skills,
-//       equipment: state.equipment,
-//       targets: state.targets,
-//       achievements: state.achievements,
-//       operations: state.operations,
-//     }),
-//   }
-// )
+    },
+    {
+      name: 'ai-idle-hacker-game',
+      storage: idbStorage,
+      partialize: (state) => ({
+        player: state.player,
+        skills: state.skills,
+        equipment: state.equipment,
+        targets: state.targets,
+        achievements: state.achievements,
+        operations: state.operations,
+        lastUpdate: state.lastUpdate,
+      }),
+    }
+  )
+);
