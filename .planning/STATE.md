@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-21T03:35:00.000Z"
+last_updated: "2026-05-21T03:45:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State
@@ -17,7 +17,7 @@ progress:
 ## Current Phase
 
 **Phase:** Phase 4 Plans Created
-**Status:** Ready to execute
+**Status:** Plan 02 executed
 
 ## Project Summary
 
@@ -44,6 +44,13 @@ progress:
   - Terminal ai on/off/status commands registered
   - AI decision loop integrated into game loop (10s interval)
   - Terminal reasoning output via CustomEvent bridge (cyan [AI] prefix)
+- [x] Phase 4 Plan 02: AI Decision Engine & Settings (2026-05-21) ✓
+  - AI decision engine created (src/lib/aiDecisionEngine.ts)
+  - Strategic upgrade evaluation by ROI (bonus/upgradeCost)
+  - Risk-adjusted target selection weighted by riskTolerance
+  - 20% credit reserve enforcement
+  - AI settings panel with risk tolerance, reserve, and priority controls
+  - Settings accessible from HUD via gear button next to AI toggle
 
 ## Memory
 
@@ -54,7 +61,8 @@ progress:
   - Resource allocation: reserve 20%, configurable risk tolerance
   - Toggle: HUD button + terminal command (`ai on/off`)
 - Existing infrastructure: gameStore has AI actions, Supabase Edge Functions directory exists
+- Plan 02 decisions: separate module for decision logic, operationType added to AIDecision, initial reserve changed to 0.2
 
 ## Next Step
 
-Execute Phase 4 Plan 02 or Plan 03 (AI Edge Functions integration)
+Execute Phase 4 Plan 03 (AI Edge Functions integration) or verify Plan 02
