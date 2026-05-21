@@ -169,11 +169,14 @@ const Toggle: React.FC<{
 );
 
 export const Settings: React.FC = () => {
-  const { addNotification, player, updatePlayer } = useGameStore();
+  const { addNotification, player, updatePlayer, exportSave, importSave, resetSave } = useGameStore();
   const [settings, setSettings] = useState<GameSettings>(defaultSettings);
+  const [showSettingsResetConfirm, setShowSettingsResetConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState(player.username);
+  const [saveExportText, setSaveExportText] = useState('');
+  const [saveImportText, setSaveImportText] = useState('');
   
   const updateSetting = (section: keyof GameSettings, key: string, value: any) => {
     setSettings(prev => ({
@@ -196,7 +199,7 @@ export const Settings: React.FC = () => {
   
   const handleReset = () => {
     setSettings(defaultSettings);
-    setShowResetConfirm(false);
+    setShowSettingsResetConfirm(false);
     addNotification('Settings reset to defaults', 'info');
   };
   
@@ -447,6 +450,82 @@ export const Settings: React.FC = () => {
         </SettingRow>
       </SettingsSection>
       
+      {/* Save Management */}
+      <SettingsSection title="Save Management" icon={Save}>
+        <p className="text-sm text-cyber-primary/60 mb-4 font-mono">
+          Export your save to backup or transfer between browsers. Import a previously exported save to restore progress.
+        </p>
+
+        {/* Export */}
+        <div className="space-y-2">
+          <h3 className="text-cyber-primary font-mono text-sm">Export Save</h3>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const encoded = exportSave();
+                setSaveExportText(encoded);
+                navigator.clipboard.writeText(encoded);
+                addNotification('Save exported and copied to clipboard!', 'success');
+              }}
+              className="cyber-button flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export & Copy to Clipboard</span>
+            </button>
+          </div>
+          {saveExportText && (
+            <textarea
+              readOnly
+              value={saveExportText}
+              className="cyber-input w-full h-24 text-xs font-mono"
+              onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+            />
+          )}
+        </div>
+
+        {/* Import */}
+        <div className="space-y-2">
+          <h3 className="text-cyber-primary font-mono text-sm">Import Save</h3>
+          <textarea
+            value={saveImportText}
+            onChange={(e) => setSaveImportText(e.target.value)}
+            placeholder="Paste your exported save data here..."
+            className="cyber-input w-full h-24 text-xs font-mono"
+          />
+          <button
+            onClick={() => {
+              if (!saveImportText.trim()) {
+                addNotification('Please paste save data first', 'warning');
+                return;
+              }
+              const result = importSave(saveImportText.trim());
+              if (result.success) {
+                addNotification('Save imported successfully!', 'success');
+                setSaveImportText('');
+              } else {
+                addNotification(`Import failed: ${result.error}`, 'error');
+              }
+            }}
+            className="cyber-button flex items-center space-x-2"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Import Save</span>
+          </button>
+        </div>
+
+        {/* Reset */}
+        <div className="space-y-2 pt-4 border-t border-cyber-primary/20">
+          <h3 className="text-cyber-warning font-mono text-sm">Danger Zone</h3>
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="cyber-button border-cyber-warning text-cyber-warning hover:bg-cyber-warning hover:text-cyber-dark"
+          >
+            <Trash2 className="w-4 h-4 inline mr-2" />
+            Reset All Progress
+          </button>
+        </div>
+      </SettingsSection>
+
       {/* Data Management */}
       <SettingsSection title="Data Management" icon={Download}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -457,7 +536,7 @@ export const Settings: React.FC = () => {
             <Download className="w-4 h-4" />
             <span>Export Settings</span>
           </button>
-          
+
           <label className="cyber-button flex items-center justify-center space-x-2 cursor-pointer">
             <Upload className="w-4 h-4" />
             <span>Import Settings</span>
@@ -482,7 +561,7 @@ export const Settings: React.FC = () => {
         </button>
         
         <button
-          onClick={() => setShowResetConfirm(true)}
+          onClick={() => setShowSettingsResetConfirm(true)}
           className="cyber-button flex items-center justify-center space-x-2 border-cyber-warning text-cyber-warning hover:bg-cyber-warning hover:text-cyber-dark"
         >
           <RotateCcw className="w-4 h-4" />
@@ -490,8 +569,43 @@ export const Settings: React.FC = () => {
         </button>
       </div>
       
-      {/* Reset Confirmation Modal */}
+      {/* Game Save Reset Confirmation Modal */}
       {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="cyber-card max-w-md mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <AlertTriangle className="w-6 h-6 text-cyber-warning" />
+              <h3 className="text-lg font-cyber font-bold text-cyber-primary">
+                Reset All Progress
+              </h3>
+            </div>
+            <p className="text-cyber-primary/70 mb-6">
+              This will permanently erase all progress — credits, upgrades, achievements, everything. This cannot be undone.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  resetSave();
+                  setShowResetConfirm(false);
+                  addNotification('All progress has been reset', 'warning');
+                }}
+                className="flex-1 cyber-button bg-cyber-warning text-cyber-dark"
+              >
+                Reset Everything
+              </button>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="flex-1 cyber-button"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Reset Confirmation Modal */}
+      {showSettingsResetConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="cyber-card max-w-md mx-4">
             <div className="flex items-center space-x-3 mb-4">
