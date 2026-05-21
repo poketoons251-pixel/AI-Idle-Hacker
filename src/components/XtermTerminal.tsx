@@ -4,6 +4,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { CanvasAddon } from '@xterm/addon-canvas';
 import type { ITerminalOptions, ITheme } from '@xterm/xterm';
+import '@xterm/xterm/css/xterm.css';
 
 interface XtermTerminalProps {
   onCommand: (command: string) => void;
