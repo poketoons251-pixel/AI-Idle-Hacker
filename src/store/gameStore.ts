@@ -546,6 +546,11 @@ interface GameState {
   unlinkPlatform: (platform: string) => void;
   syncProgress: () => void;
   shareAchievement: (achievementId: string, platforms: string[]) => void;
+
+  // Save management
+  exportSave: () => string;
+  importSave: (base64: string) => { success: boolean; error?: string };
+  resetSave: () => void;
 }
 
 const initialPlayer: Player = {
@@ -2346,6 +2351,70 @@ export const useGameStore = create<GameState>()(
         if (achievement) {
           state.addNotification(`Achievement "${achievement.name}" shared to ${platforms.join(', ')}`, 'success');
         }
+      },
+
+      // Save management
+      exportSave: () => {
+        const state = get();
+        const saveData = {
+          player: state.player,
+          skills: state.skills,
+          equipment: state.equipment,
+          targets: state.targets,
+          achievements: state.achievements,
+          operations: state.operations,
+          lastUpdate: state.lastUpdate,
+          version: '1.0.0',
+          exportedAt: new Date().toISOString(),
+        };
+        const json = JSON.stringify(saveData);
+        return btoa(json);
+      },
+
+      importSave: (base64) => {
+        try {
+          const json = atob(base64);
+          const data = JSON.parse(json);
+
+          // Validate required fields
+          if (!data.player || !data.skills || !data.equipment) {
+            return { success: false, error: 'Invalid save data: missing required fields' };
+          }
+          if (typeof data.player.credits !== 'number') {
+            return { success: false, error: 'Invalid save data: player.credits must be a number' };
+          }
+
+          // Apply the imported state
+          set((state) => ({
+            player: { ...state.player, ...data.player },
+            skills: { ...state.skills, ...data.skills },
+            equipment: data.equipment,
+            targets: data.targets || state.targets,
+            achievements: data.achievements || state.achievements,
+            operations: data.operations || [],
+            lastUpdate: data.lastUpdate || Date.now(),
+          }));
+
+          return { success: true };
+        } catch (e) {
+          return { success: false, error: e instanceof Error ? e.message : 'Failed to decode save data' };
+        }
+      },
+
+      resetSave: () => {
+        set({
+          player: { ...initialPlayer, lastActive: Date.now() },
+          skills: { ...initialSkills },
+          equipment: initialEquipment,
+          operations: [],
+          currentOperation: null,
+          targets: initialTargets,
+          achievements: initialAchievements,
+          activeQuests: [],
+          completedQuests: [],
+          notifications: [],
+          lastUpdate: Date.now(),
+        });
       },
     };
     },
