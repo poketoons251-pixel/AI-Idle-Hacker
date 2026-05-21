@@ -44,6 +44,7 @@ Plans:
 **Goal:** Player progress is saved, offline progress works, achievements track milestones
 **Mode:** mvp
 **Requirements:** SAVE-01, SAVE-02, SAVE-03, SAVE-04, SAVE-05, ACH-01, ACH-02, ACH-03, UI-03, UI-04
+**Plans:** 3 plans
 **Success Criteria:**
 1. Game auto-saves every 30 seconds and on tab close
 2. Player closing and reopening browser sees offline progress calculated correctly
@@ -51,6 +52,11 @@ Plans:
 4. 15+ achievements track and display on unlock
 5. Settings panel accessible with sound toggle and save management
 6. Layout is responsive on different desktop browser sizes
+
+Plans:
+- [ ] 03-01-PLAN.md — Persistence core: IndexedDB storage, Zustand persist, auto-save, offline progress
+- [ ] 03-02-PLAN.md — Save management: export/import via base64, Settings UI
+- [ ] 03-03-PLAN.md — Achievements + Settings: 18 auto-detected achievements, notifications, responsive layout
 
 ### Phase 4: AI Auto-Play
 **Goal:** AI agent can play the game autonomously, making strategic decisions visible in terminal
