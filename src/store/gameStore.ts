@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { idbStorage } from '../lib/idbStorage';
 import { calculateReward, RewardCalculationContext } from '../utils/rewardCalculator';
-import { makeStrategicDecision, type StrategicContext } from '../lib/aiDecisionEngine';
+import { makeStrategicDecision, makeStrategicDecisionWithLLM, type StrategicContext } from '../lib/aiDecisionEngine';
 
 export interface Player {
   id: string;
@@ -504,7 +504,7 @@ export interface GameState {
   updateAIAnalytics: (updates: Partial<AIAnalytics>) => void;
   toggleAI: () => void;
   recordAIDecision: (decision: AIDecision, result: 'success' | 'failure') => void;
-  makeAIDecision: () => AIDecision | null;
+  makeAIDecision: () => Promise<AIDecision | null>;
   executeAIDecision: (decision: AIDecision) => void;
   resetAIAnalytics: () => void;
   
@@ -1617,7 +1617,7 @@ export const useGameStore = create<GameState>()(
         }));
       },
 
-      makeAIDecision: () => {
+      makeAIDecision: async () => {
         const state = get();
         if (!state.aiConfig.enabled || !state.aiActive) return null;
 
@@ -1633,8 +1633,8 @@ export const useGameStore = create<GameState>()(
           aiConfig: state.aiConfig,
         };
 
-        // Delegate to the strategic decision engine
-        return makeStrategicDecision(ctx);
+        // Delegate to the hybrid decision engine (rules + LLM fallback)
+        return makeStrategicDecisionWithLLM(ctx);
       },
 
       executeAIDecision: async (decision) => {

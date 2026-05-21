@@ -34,7 +34,9 @@
     ]
   },
   "include": [
-    "src",
-    "api"
+    "src"
+  ],
+  "exclude": [
+    "api/functions"
   ]
 }

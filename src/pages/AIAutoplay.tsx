@@ -28,9 +28,9 @@ export const AIAutoplay: React.FC = () => {
   useEffect(() => {
     if (!aiActive) return;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
         setPulseActive(true);
-        const decision = makeAIDecision();
+        const decision = await makeAIDecision();
         if (decision) {
           executeAIDecision(decision);
         }
