@@ -10,7 +10,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   // Removed duplicate energy regeneration interval - this is now handled by useIdleProgression hook
 
   return (
-    <div className="min-h-screen bg-cyber-dark text-cyber-primary">
+    <div className="min-h-screen bg-cyber-dark text-cyber-primary p-2 sm:p-4 md:p-6">
       {/* Matrix background effect */}
       <div className="fixed inset-0 opacity-5 pointer-events-none">
         <div className="matrix-bg" />

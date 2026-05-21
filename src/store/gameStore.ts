@@ -404,7 +404,7 @@ export interface CrossPlatformLink {
   benefits: string[];
 }
 
-interface GameState {
+export interface GameState {
   // Player data
   player: Player;
   skills: Skills;

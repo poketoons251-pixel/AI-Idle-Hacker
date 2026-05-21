@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
@@ -14,8 +14,15 @@ import GuildManagement from './pages/GuildManagement';
 import AICompanionHub from './pages/AICompanionHub';
 import SocialDashboard from './pages/SocialDashboard';
 import CrossPlatformSync from './pages/CrossPlatformSync';
+import { AchievementPopup } from './components/AchievementPopup';
+import { createAchievementChecker } from './lib/achievementChecker';
 
 function App() {
+  useEffect(() => {
+    const unsubscribe = createAchievementChecker();
+    return unsubscribe;
+  }, []);
+
   return (
     <Router basename="/AI-Idle-Hacker">
       <Layout>
@@ -35,6 +42,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
+      <AchievementPopup />
     </Router>
   );
 }

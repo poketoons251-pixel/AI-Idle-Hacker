@@ -30,6 +30,7 @@ export default {
         'glow': 'glow 2s ease-in-out infinite alternate',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'flicker': 'flicker 0.15s infinite linear',
+        'slide-in': 'slideIn 0.3s ease-out forwards',
       },
       keyframes: {
         glow: {
@@ -45,6 +46,10 @@ export default {
             opacity: '0.4',
             filter: 'none',
           },
+        },
+        slideIn: {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
         },
       },
       backdropBlur: {
