@@ -9,6 +9,7 @@ import '../styles/crt-effects.css';
 import '../commands/system';
 import '../commands/hacking';
 import '../commands/economy';
+import '../commands/ai';
 
 interface TerminalContainerProps {
   onTerminalReady?: (term: Terminal) => void;

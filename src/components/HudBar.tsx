@@ -4,6 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import { useResourceFlash } from '../hooks/useResourceFlash';
 import { AnimatedCounter } from './AnimatedCounter';
 import { FloatingPopup } from './FloatingPopup';
+import { AIToggle } from './AIToggle';
 
 export const HudBar: React.FC = () => {
   // Individual Zustand selectors to prevent re-render storms
@@ -112,6 +113,9 @@ export const HudBar: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* AI Auto-Play Toggle */}
+          <AIToggle />
 
           {/* Username */}
           <div className="flex-shrink-0 font-mono text-xs text-cyber-gray-lighter">
