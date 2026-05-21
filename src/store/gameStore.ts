@@ -649,13 +649,24 @@ const initialEquipment: Equipment[] = [
 ];
 
 const initialAchievements: Achievement[] = [
-  {
-    id: 'ach-1',
-    name: 'First Steps',
-    description: 'Complete your first operation',
-    unlocked: false,
-    rewards: { credits: 100, experience: 50 },
-  },
+  { id: 'ach-first-operation', name: 'First Blood', description: 'Complete your first operation', icon: '🎯', unlocked: false },
+  { id: 'ach-first-upgrade', name: 'Upgraded', description: 'Purchase your first equipment upgrade', icon: '⬆️', unlocked: false },
+  { id: 'ach-1k-credits', name: 'Thousandaire', description: 'Accumulate 1,000 credits', icon: '💰', unlocked: false },
+  { id: 'ach-10k-credits', name: 'Credit Whale', description: 'Accumulate 10,000 credits', icon: '🐋', unlocked: false },
+  { id: 'ach-100k-credits', name: 'Crypto King', description: 'Accumulate 100,000 credits', icon: '👑', unlocked: false },
+  { id: 'ach-1m-credits', name: 'Millionaire', description: 'Accumulate 1,000,000 credits', icon: '💎', unlocked: false },
+  { id: 'ach-level-5', name: 'Script Kiddie', description: 'Reach level 5', icon: '📈', unlocked: false },
+  { id: 'ach-level-10', name: 'Hacker', description: 'Reach level 10', icon: '💻', unlocked: false },
+  { id: 'ach-level-25', name: 'Elite', description: 'Reach level 25', icon: '🏆', unlocked: false },
+  { id: 'ach-5-operations', name: 'Busy Bee', description: 'Complete 5 operations', icon: '🐝', unlocked: false },
+  { id: 'ach-25-operations', name: 'Workaholic', description: 'Complete 25 operations', icon: '⚡', unlocked: false },
+  { id: 'ach-unlock-target-2', name: 'Moving Up', description: 'Unlock your second target', icon: '🔓', unlocked: false },
+  { id: 'ach-unlock-target-5', name: 'Full Arsenal', description: 'Unlock all 5 targets', icon: '🎖️', unlocked: false },
+  { id: 'ach-all-equipped', name: 'Fully Loaded', description: 'Have at least one hardware and one software equipped', icon: '🔧', unlocked: false },
+  { id: 'ach-100-ops-total', name: 'Veteran', description: 'Complete 100 operations total', icon: '🎖️', unlocked: false },
+  { id: 'ach-10k-rate', name: 'Money Printer', description: 'Reach 10,000 credits/sec generation rate', icon: '🖨️', unlocked: false },
+  { id: 'ach-energy-max', name: 'Fully Charged', description: 'Reach maximum energy', icon: '🔋', unlocked: false },
+  { id: 'ach-first-hack', name: 'Hello World', description: 'Initiate your first hack', icon: '🌍', unlocked: false },
 ];
 
 const initialAIConfig: AIConfig = {
