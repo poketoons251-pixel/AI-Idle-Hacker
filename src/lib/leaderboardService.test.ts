@@ -86,7 +86,7 @@ describe('leaderboardService', () => {
 
   describe('submitScore', () => {
     it('rejects anonymous users', async () => {
-      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'anon-id', is_anonymous: true } as Session });
+      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'anon-id', is_anonymous: true } as unknown as Session });
       (authModule.isAnonymous as ReturnType<typeof vi.fn>).mockReturnValue(true);
 
       const result = await submitScore({
@@ -103,7 +103,7 @@ describe('leaderboardService', () => {
     });
 
     it('upserts player score when authenticated', async () => {
-      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'test-user', is_anonymous: false } as Session });
+      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'test-user', is_anonymous: false } as unknown as Session });
       (authModule.isAnonymous as ReturnType<typeof vi.fn>).mockReturnValue(false);
       (authModule.getUserId as ReturnType<typeof vi.fn>).mockReturnValue('test-user');
 
@@ -134,7 +134,7 @@ describe('leaderboardService', () => {
 
   describe('getPlayerRank', () => {
     it('returns null rank when player has no entry', async () => {
-      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'test-user', is_anonymous: false } as Session });
+      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'test-user', is_anonymous: false } as unknown as Session });
       (authModule.isAnonymous as ReturnType<typeof vi.fn>).mockReturnValue(false);
       (authModule.getUserId as ReturnType<typeof vi.fn>).mockReturnValue('test-user');
 
@@ -152,7 +152,7 @@ describe('leaderboardService', () => {
     });
 
     it('returns player rank by counting entries with higher score', async () => {
-      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'test-user', is_anonymous: false } as Session });
+      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'test-user', is_anonymous: false } as unknown as Session });
       (authModule.isAnonymous as ReturnType<typeof vi.fn>).mockReturnValue(false);
       (authModule.getUserId as ReturnType<typeof vi.fn>).mockReturnValue('test-user');
 
@@ -236,7 +236,7 @@ describe('leaderboardService', () => {
 
   describe('updateLeaderboardEntry', () => {
     it('updates only the calling player entry (RLS enforced)', async () => {
-      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'test-user', is_anonymous: false } as Session });
+      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'test-user', is_anonymous: false } as unknown as Session });
       (authModule.isAnonymous as ReturnType<typeof vi.fn>).mockReturnValue(false);
       (authModule.getUserId as ReturnType<typeof vi.fn>).mockReturnValue('test-user');
 
@@ -258,7 +258,7 @@ describe('leaderboardService', () => {
     });
 
     it('rejects anonymous users', async () => {
-      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'anon-id', is_anonymous: true } as Session });
+      (authModule.getAuthSession as ReturnType<typeof vi.fn>).mockResolvedValue({ user: { id: 'anon-id', is_anonymous: true } as unknown as Session });
       (authModule.isAnonymous as ReturnType<typeof vi.fn>).mockReturnValue(true);
 
       const result = await updateLeaderboardEntry({ score: 100 });

@@ -1,158 +1,31 @@
-import React, { useState } from 'react';
-import { 
-  Trophy, 
-  Medal, 
-  Crown, 
-  TrendingUp, 
-  Users, 
-  Zap, 
-  Target, 
-  Clock, 
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Trophy,
+  Medal,
+  Crown,
+  TrendingUp,
+  Users,
+  Zap,
+  Target,
+  Clock,
   Star,
   Award,
   ChevronUp,
   ChevronDown,
-  Minus
+  Minus,
+  RefreshCw,
+  Link
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-
-interface LeaderboardEntry {
-  rank: number;
-  username: string;
-  level: number;
-  reputation: number;
-  totalCredits: number;
-  operationsCompleted: number;
-  successRate: number;
-  lastActive: string;
-  change: 'up' | 'down' | 'same';
-  changeAmount: number;
-  isCurrentPlayer?: boolean;
-}
-
-const mockLeaderboardData: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    username: 'CyberGhost_Prime',
-    level: 47,
-    reputation: 9850,
-    totalCredits: 2450000,
-    operationsCompleted: 1247,
-    successRate: 98.5,
-    lastActive: '2 minutes ago',
-    change: 'same',
-    changeAmount: 0
-  },
-  {
-    rank: 2,
-    username: 'QuantumHacker',
-    level: 45,
-    reputation: 9720,
-    totalCredits: 2380000,
-    operationsCompleted: 1198,
-    successRate: 97.8,
-    lastActive: '15 minutes ago',
-    change: 'up',
-    changeAmount: 1
-  },
-  {
-    rank: 3,
-    username: 'NeonSamurai',
-    level: 44,
-    reputation: 9650,
-    totalCredits: 2320000,
-    operationsCompleted: 1156,
-    successRate: 96.9,
-    lastActive: '1 hour ago',
-    change: 'down',
-    changeAmount: 1
-  },
-  {
-    rank: 4,
-    username: 'DataViper',
-    level: 43,
-    reputation: 9480,
-    totalCredits: 2180000,
-    operationsCompleted: 1089,
-    successRate: 95.7,
-    lastActive: '3 hours ago',
-    change: 'up',
-    changeAmount: 2
-  },
-  {
-    rank: 5,
-    username: 'ShadowBreaker',
-    level: 42,
-    reputation: 9350,
-    totalCredits: 2050000,
-    operationsCompleted: 1034,
-    successRate: 94.8,
-    lastActive: '5 hours ago',
-    change: 'down',
-    changeAmount: 1
-  },
-  {
-    rank: 6,
-    username: 'EliteHacker_X',
-    level: 41,
-    reputation: 9200,
-    totalCredits: 1980000,
-    operationsCompleted: 987,
-    successRate: 93.5,
-    lastActive: '8 hours ago',
-    change: 'same',
-    changeAmount: 0
-  },
-  {
-    rank: 7,
-    username: 'CyberNinja_99',
-    level: 40,
-    reputation: 9050,
-    totalCredits: 1890000,
-    operationsCompleted: 945,
-    successRate: 92.3,
-    lastActive: '12 hours ago',
-    change: 'up',
-    changeAmount: 3
-  },
-  {
-    rank: 8,
-    username: 'DigitalPhantom',
-    level: 39,
-    reputation: 8900,
-    totalCredits: 1820000,
-    operationsCompleted: 898,
-    successRate: 91.7,
-    lastActive: '1 day ago',
-    change: 'down',
-    changeAmount: 2
-  },
-  {
-    rank: 9,
-    username: 'CodeBreaker_AI',
-    level: 38,
-    reputation: 8750,
-    totalCredits: 1750000,
-    operationsCompleted: 856,
-    successRate: 90.8,
-    lastActive: '1 day ago',
-    change: 'same',
-    changeAmount: 0
-  },
-  {
-    rank: 10,
-    username: 'You',
-    level: 1,
-    reputation: 100,
-    totalCredits: 1000,
-    operationsCompleted: 0,
-    successRate: 0,
-    lastActive: 'Now',
-    change: 'same',
-    changeAmount: 0,
-    isCurrentPlayer: true
-  }
-];
+import {
+  getLeaderboard,
+  getPlayerRank,
+  subscribeToLeaderboard,
+  updateLeaderboardEntry,
+  type LeaderboardEntry,
+} from '../lib/leaderboardService';
+import { getAuthSession, isAnonymous } from '../lib/supabaseAuth';
+import type { Session } from '@supabase/supabase-js';
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
@@ -193,7 +66,7 @@ const getChangeIcon = (change: 'up' | 'down' | 'same', amount: number) => {
   }
 };
 
-const LeaderboardEntry: React.FC<{ entry: LeaderboardEntry; sortBy: string }> = ({ entry, sortBy }) => {
+const LeaderboardEntryComponent: React.FC<{ entry: LeaderboardEntry; sortBy: string }> = ({ entry, sortBy }) => {
   const getSortValue = () => {
     switch (sortBy) {
       case 'reputation': return entry.reputation.toLocaleString();
@@ -203,7 +76,7 @@ const LeaderboardEntry: React.FC<{ entry: LeaderboardEntry; sortBy: string }> = 
       default: return entry.level.toString();
     }
   };
-  
+
   return (
     <div className={`
       cyber-card transition-all duration-300 hover:border-cyber-primary/60
@@ -216,7 +89,7 @@ const LeaderboardEntry: React.FC<{ entry: LeaderboardEntry; sortBy: string }> = 
             {getRankIcon(entry.rank)}
             {getChangeIcon(entry.change, entry.changeAmount)}
           </div>
-          
+
           {/* Player Info */}
           <div className="flex-1">
             <div className="flex items-center space-x-2">
@@ -238,7 +111,7 @@ const LeaderboardEntry: React.FC<{ entry: LeaderboardEntry; sortBy: string }> = 
             </div>
           </div>
         </div>
-        
+
         {/* Stats */}
         <div className="text-right">
           <p className="text-lg font-bold text-cyber-secondary font-mono">
@@ -279,23 +152,115 @@ const StatCard: React.FC<{
 export const Leaderboards: React.FC = () => {
   const { player } = useGameStore();
   const [sortBy, setSortBy] = useState('reputation');
-  
-  // Update current player data in leaderboard
-  const leaderboardData = mockLeaderboardData.map(entry => {
-    if (entry.isCurrentPlayer) {
-      return {
-        ...entry,
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [playerRank, setPlayerRank] = useState<number | null>(null);
+  const [playerEntry, setPlayerEntry] = useState<LeaderboardEntry | null>(null);
+  const [isAnon, setIsAnon] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
+
+  // Fetch leaderboard data
+  const fetchLeaderboard = useCallback(async (category: string = 'overall') => {
+    try {
+      const data = await getLeaderboard(category, 50);
+      setLeaderboardData(data);
+      setError(null);
+    } catch (e) {
+      setError('Unable to load leaderboard');
+      console.error('[Leaderboards] Failed to fetch:', e);
+    }
+  }, []);
+
+  // Fetch player rank
+  const fetchPlayerRank = useCallback(async () => {
+    try {
+      const { rank, entry } = await getPlayerRank();
+      setPlayerRank(rank);
+      setPlayerEntry(entry);
+    } catch (e) {
+      console.error('[Leaderboards] Failed to get player rank:', e);
+    }
+  }, []);
+
+  // Submit player score to leaderboard
+  const submitPlayerScore = useCallback(async () => {
+    if (!session || isAnonymous(session)) return;
+
+    const score = player.level * 1000 + player.reputation + Math.floor(player.credits / 10);
+
+    try {
+      await updateLeaderboardEntry({
+        score,
         level: player.level,
         reputation: player.reputation,
         totalCredits: player.credits,
-        // These would come from actual game state in a real implementation
         operationsCompleted: 0,
-        successRate: 0
-      };
+      });
+    } catch (e) {
+      console.error('[Leaderboards] Failed to update entry:', e);
     }
-    return entry;
-  });
-  
+  }, [session, player.level, player.reputation, player.credits]);
+
+  // Check auth state on mount
+  useEffect(() => {
+    let mounted = true;
+
+    const checkAuth = async () => {
+      const sess = await getAuthSession();
+      if (!mounted) return;
+      setSession(sess);
+      setIsAnon(!sess || isAnonymous(sess));
+    };
+
+    checkAuth();
+
+    return () => { mounted = false; };
+  }, []);
+
+  // Load data on mount and when sortBy changes
+  useEffect(() => {
+    if (isAnon) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    Promise.all([
+      fetchLeaderboard(),
+      fetchPlayerRank(),
+    ]).finally(() => {
+      setLoading(false);
+    });
+  }, [sortBy, isAnon, fetchLeaderboard, fetchPlayerRank]);
+
+  // Set up realtime subscription
+  useEffect(() => {
+    if (isAnon) return;
+
+    const { unsubscribe } = subscribeToLeaderboard('overall', () => {
+      // Refetch data on any leaderboard change
+      fetchLeaderboard();
+      fetchPlayerRank();
+    });
+
+    subscriptionRef.current = { unsubscribe };
+
+    return () => {
+      unsubscribe();
+      subscriptionRef.current = null;
+    };
+  }, [isAnon, fetchLeaderboard, fetchPlayerRank]);
+
+  // Auto-submit player score when milestones change
+  useEffect(() => {
+    if (isAnon || !session) return;
+    submitPlayerScore();
+  }, [player.level, player.reputation, player.credits, isAnon, session, submitPlayerScore]);
+
+  // Sort data for display
   const sortedData = [...leaderboardData].sort((a, b) => {
     switch (sortBy) {
       case 'reputation': return b.reputation - a.reputation;
@@ -305,9 +270,115 @@ export const Leaderboards: React.FC = () => {
       default: return b.level - a.level;
     }
   });
-  
-  const currentPlayerRank = sortedData.findIndex(entry => entry.isCurrentPlayer) + 1;
-  
+
+  // Mark current player entry
+  const displayData = sortedData.map(entry => ({
+    ...entry,
+    isCurrentPlayer: playerEntry ? entry.username === playerEntry.username : false,
+  }));
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-cyber font-bold text-cyber-primary cyber-text-glow">
+            LEADERBOARDS
+          </h1>
+          <p className="text-cyber-primary/60 font-mono">
+            Compete with elite hackers worldwide
+          </p>
+        </div>
+        <div className="flex items-center justify-center py-20">
+          <RefreshCw className="w-8 h-8 text-cyber-accent animate-spin" />
+          <span className="ml-3 text-cyber-primary/60 font-mono">Loading leaderboard data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Anonymous user state
+  if (isAnon) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-cyber font-bold text-cyber-primary cyber-text-glow">
+            LEADERBOARDS
+          </h1>
+          <p className="text-cyber-primary/60 font-mono">
+            Compete with elite hackers worldwide
+          </p>
+        </div>
+        <div className="cyber-card text-center py-16">
+          <Link className="w-12 h-12 text-cyber-accent mx-auto mb-4" />
+          <h2 className="text-xl font-cyber font-bold text-cyber-primary mb-2">
+            Link Your Account
+          </h2>
+          <p className="text-cyber-primary/60 font-mono max-w-md mx-auto">
+            Link your account to appear on leaderboards and compete with players worldwide.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-cyber font-bold text-cyber-primary cyber-text-glow">
+            LEADERBOARDS
+          </h1>
+          <p className="text-cyber-primary/60 font-mono">
+            Compete with elite hackers worldwide
+          </p>
+        </div>
+        <div className="cyber-card text-center py-16 border-cyber-warning">
+          <h2 className="text-xl font-cyber font-bold text-cyber-warning mb-2">
+            {error}
+          </h2>
+          <button
+            onClick={() => {
+              setLoading(true);
+              fetchLeaderboard();
+              fetchPlayerRank();
+            }}
+            className="cyber-button mt-4"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (displayData.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-cyber font-bold text-cyber-primary cyber-text-glow">
+            LEADERBOARDS
+          </h1>
+          <p className="text-cyber-primary/60 font-mono">
+            Compete with elite hackers worldwide
+          </p>
+        </div>
+        <div className="cyber-card text-center py-16">
+          <Trophy className="w-12 h-12 text-cyber-primary/30 mx-auto mb-4" />
+          <h2 className="text-xl font-cyber font-bold text-cyber-primary mb-2">
+            No leaderboard data yet
+          </h2>
+          <p className="text-cyber-primary/60 font-mono">
+            Be the first to claim your spot!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -319,39 +390,39 @@ export const Leaderboards: React.FC = () => {
           Compete with elite hackers worldwide
         </p>
       </div>
-      
+
       {/* Player Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard 
-          title="Your Rank" 
-          value={`#${currentPlayerRank}`} 
-          icon={Trophy} 
+        <StatCard
+          title="Your Rank"
+          value={playerRank ? `#${playerRank}` : 'Unranked'}
+          icon={Trophy}
           color="text-cyber-accent"
           subtitle="Global position"
         />
-        <StatCard 
-          title="Reputation" 
-          value={player.reputation} 
-          icon={Star} 
+        <StatCard
+          title="Reputation"
+          value={player.reputation}
+          icon={Star}
           color="text-cyber-warning"
           subtitle="Community standing"
         />
-        <StatCard 
-          title="Level" 
-          value={player.level} 
-          icon={TrendingUp} 
+        <StatCard
+          title="Level"
+          value={player.level}
+          icon={TrendingUp}
           color="text-cyber-secondary"
           subtitle="Experience tier"
         />
-        <StatCard 
-          title="Credits" 
-          value={`${(player.credits / 1000).toFixed(0)}K`} 
-          icon={Zap} 
+        <StatCard
+          title="Credits"
+          value={`${(player.credits / 1000).toFixed(0)}K`}
+          icon={Zap}
           color="text-cyber-primary"
           subtitle="Total earned"
         />
       </div>
-      
+
       {/* Sort Controls */}
       <div className="cyber-card">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
@@ -359,7 +430,7 @@ export const Leaderboards: React.FC = () => {
             <Users className="w-6 h-6" />
             <span>Global Rankings</span>
           </h2>
-          
+
           <div className="flex items-center space-x-2">
             <span className="text-sm text-cyber-primary/80 font-mono">Sort by:</span>
             <select
@@ -376,49 +447,49 @@ export const Leaderboards: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Leaderboard */}
       <div className="space-y-3">
-        {sortedData.map((entry, index) => (
-          <LeaderboardEntry 
-            key={entry.username} 
-            entry={{ ...entry, rank: index + 1 }} 
+        {displayData.map((entry, index) => (
+          <LeaderboardEntryComponent
+            key={`${entry.username}-${entry.rank}`}
+            entry={{ ...entry, rank: index + 1 }}
             sortBy={sortBy}
           />
         ))}
       </div>
-      
+
       {/* Achievement Showcase */}
       <div className="cyber-card">
         <h2 className="text-lg font-cyber font-bold text-cyber-primary mb-4 flex items-center space-x-2">
           <Award className="w-5 h-5" />
           <span>Top Achievements This Week</span>
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center space-y-2">
             <Crown className="w-8 h-8 text-yellow-400 mx-auto" />
             <h3 className="font-cyber text-cyber-primary">Speed Demon</h3>
-            <p className="text-sm text-cyber-primary/70">CyberGhost_Prime</p>
-            <p className="text-xs text-cyber-primary/60 font-mono">Fastest operation: 0.3s</p>
+            <p className="text-sm text-cyber-primary/70">Top ranked player</p>
+            <p className="text-xs text-cyber-primary/60 font-mono">Fastest operation: TBD</p>
           </div>
-          
+
           <div className="text-center space-y-2">
             <Target className="w-8 h-8 text-cyber-secondary mx-auto" />
             <h3 className="font-cyber text-cyber-primary">Perfect Strike</h3>
-            <p className="text-sm text-cyber-primary/70">QuantumHacker</p>
-            <p className="text-xs text-cyber-primary/60 font-mono">100% success rate (50 ops)</p>
+            <p className="text-sm text-cyber-primary/70">Highest success rate</p>
+            <p className="text-xs text-cyber-primary/60 font-mono">Coming soon</p>
           </div>
-          
+
           <div className="text-center space-y-2">
             <Clock className="w-8 h-8 text-cyber-accent mx-auto" />
             <h3 className="font-cyber text-cyber-primary">Night Owl</h3>
-            <p className="text-sm text-cyber-primary/70">NeonSamurai</p>
-            <p className="text-xs text-cyber-primary/60 font-mono">72 hours active time</p>
+            <p className="text-sm text-cyber-primary/70">Most active time</p>
+            <p className="text-xs text-cyber-primary/60 font-mono">Coming soon</p>
           </div>
         </div>
       </div>
-      
+
       {/* Competition Info */}
       <div className="cyber-card bg-cyber-primary/5">
         <h3 className="font-cyber font-bold text-cyber-accent mb-3 flex items-center space-x-2">
@@ -437,7 +508,7 @@ export const Leaderboards: React.FC = () => {
           </p>
           <div className="mt-4 p-2 bg-cyber-warning/10 rounded border border-cyber-warning/30">
             <p className="text-xs text-cyber-warning font-mono">
-              Next reset: 3 days, 14 hours, 27 minutes
+              Leaderboard updates in real-time
             </p>
           </div>
         </div>
