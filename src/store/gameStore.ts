@@ -5,6 +5,7 @@ import { persist } from 'zustand/middleware';
 import { idbStorage } from '../lib/idbStorage';
 import { calculateReward, RewardCalculationContext } from '../utils/rewardCalculator';
 import { makeStrategicDecision, makeStrategicDecisionWithLLM, type StrategicContext } from '../lib/aiDecisionEngine';
+import { saveToCloud, loadFromCloud, checkSyncConflict } from '../lib/cloudSyncService';
 
 export interface Player {
   id: string;
@@ -554,6 +555,21 @@ export interface GameState {
   exportSave: () => string;
   importSave: (base64: string) => { success: boolean; error?: string };
   resetSave: () => void;
+
+  // Cloud sync state
+  cloudSync: {
+    lastCloudSync: number | null;
+    syncStatus: 'idle' | 'syncing' | 'synced' | 'error' | 'conflict';
+    syncError: string | null;
+  };
+
+  // Cloud sync actions
+  syncToCloud: () => Promise<{ success: boolean; error?: string }>;
+  syncFromCloud: () => Promise<{
+    success: boolean;
+    conflict?: { hasConflict: boolean; cloudTimestamp?: string; localTimestamp: number; resolution: string };
+    error?: string;
+  }>;
 }
 
 const initialPlayer: Player = {
@@ -1091,6 +1107,13 @@ export const useGameStore = create<GameState>()(
         activeTab: 'dashboard',
         notifications: [],
         lastUpdate: Date.now(),
+
+        // Cloud sync state
+        cloudSync: {
+          lastCloudSync: null,
+          syncStatus: 'idle',
+          syncError: null,
+        },
 
       // Player actions
       updatePlayer: (updates) => {
@@ -2394,6 +2417,128 @@ export const useGameStore = create<GameState>()(
           notifications: [],
           lastUpdate: Date.now(),
         });
+      },
+
+      // Cloud sync actions
+      syncToCloud: async () => {
+        const state = get();
+
+        // Set syncing status
+        set({ cloudSync: { ...state.cloudSync, syncStatus: 'syncing', syncError: null } });
+
+        // Serialize only game data — exclude UI state (activeTab, notifications)
+        const gameData = {
+          player: state.player,
+          skills: state.skills,
+          equipment: state.equipment,
+          operations: state.operations,
+          achievements: state.achievements,
+          quests: state.quests,
+          storyQuestLines: state.storyQuestLines,
+          loreEntries: state.loreEntries,
+          unlockedLore: state.unlockedLore,
+          aiConfig: state.aiConfig,
+          aiAnalytics: state.aiAnalytics,
+          aiActive: state.aiActive,
+          aiLastDecision: state.aiLastDecision,
+          lastUpdate: state.lastUpdate,
+        };
+
+        const result = await saveToCloud(gameData);
+
+        if (result.success) {
+          set({
+            cloudSync: {
+              lastCloudSync: Date.now(),
+              syncStatus: 'synced',
+              syncError: null,
+            },
+          });
+        } else {
+          set({
+            cloudSync: {
+              ...state.cloudSync,
+              syncStatus: 'error',
+              syncError: result.error || 'Cloud save failed',
+            },
+          });
+        }
+
+        return result;
+      },
+
+      syncFromCloud: async () => {
+        const state = get();
+
+        // Set syncing status
+        set({ cloudSync: { ...state.cloudSync, syncStatus: 'syncing', syncError: null } });
+
+        const loadResult = await loadFromCloud();
+
+        if (!loadResult.success) {
+          set({
+            cloudSync: {
+              ...state.cloudSync,
+              syncStatus: 'error',
+              syncError: loadResult.error || 'Cloud load failed',
+            },
+          });
+          return { success: false, error: loadResult.error };
+        }
+
+        // No cloud save exists
+        if (!loadResult.data) {
+          set({ cloudSync: { ...state.cloudSync, syncStatus: 'idle', syncError: null } });
+          return { success: true };
+        }
+
+        // Check for sync conflict
+        const conflictResult = await checkSyncConflict(state.lastUpdate);
+
+        if (conflictResult.hasConflict) {
+          set({
+            cloudSync: {
+              ...state.cloudSync,
+              syncStatus: 'conflict',
+              syncError: null,
+            },
+          });
+          return {
+            success: true,
+            conflict: {
+              hasConflict: conflictResult.hasConflict,
+              cloudTimestamp: conflictResult.cloudTimestamp,
+              localTimestamp: conflictResult.localTimestamp,
+              resolution: conflictResult.resolution || 'cloud',
+            },
+          };
+        }
+
+        // No conflict — merge cloud data into store state
+        const cloudData = loadResult.data;
+        set((currentState) => ({
+          player: { ...currentState.player, ...cloudData.player },
+          skills: { ...currentState.skills, ...cloudData.skills },
+          equipment: cloudData.equipment || currentState.equipment,
+          operations: cloudData.operations || currentState.operations,
+          achievements: cloudData.achievements || currentState.achievements,
+          quests: cloudData.quests || currentState.quests,
+          storyQuestLines: cloudData.storyQuestLines || currentState.storyQuestLines,
+          loreEntries: cloudData.loreEntries || currentState.loreEntries,
+          unlockedLore: cloudData.unlockedLore || currentState.unlockedLore,
+          aiConfig: cloudData.aiConfig || currentState.aiConfig,
+          aiAnalytics: cloudData.aiAnalytics || currentState.aiAnalytics,
+          aiActive: cloudData.aiActive ?? currentState.aiActive,
+          aiLastDecision: cloudData.aiLastDecision,
+          lastUpdate: cloudData.lastUpdate || currentState.lastUpdate,
+          cloudSync: {
+            lastCloudSync: Date.now(),
+            syncStatus: 'synced',
+            syncError: null,
+          },
+        }));
+
+        return { success: true };
       },
     };
     },
