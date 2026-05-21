@@ -32,9 +32,9 @@
 - [ ] **AI-05**: AI runs via server-side edge functions (no browser-side LLM calls)
 
 ### Save System
-- [ ] **SAVE-01**: Game auto-saves to IndexedDB every 30 seconds
-- [ ] **SAVE-02**: Game saves on browser close/tab change (beforeunload event)
-- [ ] **SAVE-03**: Offline progress calculated on load (elapsed time × idle rate, capped at 8 hours)
+- [x] **SAVE-01**: Game auto-saves to IndexedDB every 30 seconds
+- [x] **SAVE-02**: Game saves on browser close/tab change (beforeunload event)
+- [x] **SAVE-03**: Offline progress calculated on load (elapsed time × idle rate, capped at 8 hours)
 - [ ] **SAVE-04**: Player can export save data as copy-pasteable string
 - [ ] **SAVE-05**: Player can import save data from exported string
 
