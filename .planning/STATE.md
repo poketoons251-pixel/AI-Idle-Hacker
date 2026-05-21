@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-21T03:05:47.040Z"
+last_updated: "2026-05-21T03:35:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 13
-  completed_plans: 10
-  percent: 77
+  completed_plans: 11
+  percent: 85
 ---
 
 # Project State
@@ -39,6 +39,11 @@ progress:
 - [x] Phase 4: AI Auto-Play Discussion (2026-05-21)
   - CONTEXT.md created with 5 implementation decisions
   - All gray areas resolved: 10s decision frequency, hybrid strategy, summary reasoning, 20% reserve, HUD + terminal toggle
+- [x] Phase 4 Plan 01: AI Auto-Play Controls & Decision Loop (2026-05-21) ✓
+  - AIToggle component created and integrated into HUD
+  - Terminal ai on/off/status commands registered
+  - AI decision loop integrated into game loop (10s interval)
+  - Terminal reasoning output via CustomEvent bridge (cyan [AI] prefix)
 
 ## Memory
 
@@ -52,4 +57,4 @@ progress:
 
 ## Next Step
 
-Run `/gsd-plan-phase 4` to create executable plan for AI Auto-Play
+Execute Phase 4 Plan 02 or Plan 03 (AI Edge Functions integration)
