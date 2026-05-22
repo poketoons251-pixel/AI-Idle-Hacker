@@ -145,6 +145,16 @@ export const XtermTerminal: React.FC<XtermTerminalProps> = ({
     });
     resizeObserver.observe(containerRef.current);
 
+    // Re-fit when custom font loads
+    document.fonts.ready.then(() => {
+      requestAnimationFrame(() => {
+        fitAddonRef.current?.fit();
+      });
+    });
+
+    // Log renderer type for debugging
+    console.log('[XtermTerminal] WebGL renderer active (Canvas fallback available)');
+
     // Cleanup — CRITICAL for React 18 Strict Mode
     return () => {
       resizeObserver.disconnect();
