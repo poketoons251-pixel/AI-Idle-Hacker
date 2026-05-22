@@ -7,9 +7,9 @@ last_updated: "2026-05-22T00:00:00Z"
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 16
+  total_plans: 21
   completed_plans: 16
-  percent: 100
+  percent: 76
 ---
 
 # Project State
@@ -64,6 +64,14 @@ progress:
 - Existing infrastructure: Supabase clients configured, 12 migrations exist, Vercel + GitHub Pages deployment working
 - Live game: https://poketoons251-pixel.github.io/AI-Idle-Hacker/
 
+## Phase 6 Plans
+
+- [ ] 06-01-PLAN.md — Content expansion: 15 new targets (4 tiers) + 9 new upgrades (Wave 1)
+- [ ] 06-02-PLAN.md — Visual effects: glitch CSS, screen flash, scan animation (Wave 1)
+- [ ] 06-03-PLAN.md — Audio system: AudioManager singleton, 7 sounds, ambient drone (Wave 1)
+- [ ] 06-04-PLAN.md — Integration: all 7 sound triggers wired + glitch mechanism + Settings UI (Wave 2)
+- [ ] 06-05-PLAN.md — Performance: React.lazy + xterm.js WebGL verification (Wave 1)
+
 ## Next Step
 
-Plan Phase 6 — create plans for sound system, visual effects, content expansion, and performance optimization.
+Execute Phase 6 plans — content expansion, visual effects, audio system, integration, and performance optimization.
