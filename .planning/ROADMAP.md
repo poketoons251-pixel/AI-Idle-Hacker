@@ -111,7 +111,7 @@ Plans:
 - [x] 06-02-PLAN.md — Visual effects: glitch CSS, screen flash, scan animation
 - [x] 06-03-PLAN.md — Audio system: AudioManager singleton with 7 sounds + ambient drone
 - [ ] 06-04-PLAN.md — Sound integration: wire triggers into hacking/achievement/store + Settings UI
-- [ ] 06-05-PLAN.md — Performance: React.lazy for secondary pages + xterm.js WebGL verification
+- [x] 06-05-PLAN.md — Performance: React.lazy for secondary pages + xterm.js WebGL verification
 
 ---
 

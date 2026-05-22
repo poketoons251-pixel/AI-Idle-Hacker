@@ -26,10 +26,10 @@
 
 ### AI Auto-Play
 - [ ] **AI-01**: Player can enable/disable AI auto-play mode
-- [ ] **AI-02**: AI makes strategic decisions about which upgrades to purchase
+- [x] **AI-02**: AI makes strategic decisions about which upgrades to purchase
 - [ ] **AI-03**: AI initiates hacking commands against appropriate targets
 - [ ] **AI-04**: AI decision reasoning is visible in terminal output
-- [ ] **AI-05**: AI runs via server-side edge functions (no browser-side LLM calls)
+- [x] **AI-05**: AI runs via server-side edge functions (no browser-side LLM calls)
 
 ### Save System
 - [x] **SAVE-01**: Game auto-saves to IndexedDB every 30 seconds
