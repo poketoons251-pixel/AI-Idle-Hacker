@@ -36,15 +36,15 @@
 6. Upgrade costs scale exponentially, creating meaningful progression
 
 Plans:
-- [ ] 02-01-PLAN.md — Economy foundation: passive credit generation, 11 upgrades, cost scaling, HUD rate display
-- [ ] 02-02-PLAN.md — Hacking gameplay: 5 targets, hack command with breach animation, reward/unlock flow
-- [ ] 02-03-PLAN.md — Upgrade UI + visual feedback: UpgradePanel sidebar, economy commands, counter flash/popups
+- [x] 02-01-PLAN.md — Economy foundation: passive credit generation, 11 upgrades, cost scaling, HUD rate display
+- [x] 02-02-PLAN.md — Hacking gameplay: 5 targets, hack command with breach animation, reward/unlock flow
+- [x] 02-03-PLAN.md — Upgrade UI + visual feedback: UpgradePanel sidebar, economy commands, counter flash/popups
 
 ### Phase 3: Persistence & Polish
 **Goal:** Player progress is saved, offline progress works, achievements track milestones
 **Mode:** mvp
 **Requirements:** SAVE-01, SAVE-02, SAVE-03, SAVE-04, SAVE-05, ACH-01, ACH-02, ACH-03, UI-03, UI-04
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans executed
 **Success Criteria:**
 1. Game auto-saves every 30 seconds and on tab close
 2. Player closing and reopening browser sees offline progress calculated correctly
@@ -56,7 +56,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — Persistence core: IndexedDB storage, Zustand persist, auto-save, offline progress
 - [x] 03-02-PLAN.md — Save management: export/import via base64, Settings UI
-- [ ] 03-03-PLAN.md — Achievements + Settings: 18 auto-detected achievements, notifications, responsive layout
+- [x] 03-03-PLAN.md — Achievements + Settings: 18 auto-detected achievements, notifications, responsive layout
 
 ### Phase 4: AI Auto-Play
 **Goal:** AI agent can play the game autonomously, making strategic decisions visible in terminal
@@ -88,9 +88,9 @@ Plans:
 5. Edge Functions deployed and callable for AI auto-play
 
 Plans:
-- [ ] 05-01-PLAN.md — Auth + DB schema: anonymous-first auth, OAuth linking, game_saves/player_profiles/leaderboards tables with RLS
-- [ ] 05-02-PLAN.md — Cloud sync service: save/load with last-write-wins, Zustand integration, conflict detection
-- [ ] 05-03-PLAN.md — Leaderboards + realtime: real Supabase data, realtime subscriptions, Edge Function deprecation
+- [x] 05-01-PLAN.md — Auth + DB schema: anonymous-first auth, OAuth linking, game_saves/player_profiles/leaderboards tables with RLS
+- [x] 05-02-PLAN.md — Cloud sync service: save/load with last-write-wins, Zustand integration, conflict detection
+- [x] 05-03-PLAN.md — Leaderboards + realtime: real Supabase data, realtime subscriptions, Edge Function deprecation
 
 ### Phase 6: Content & Polish
 **Goal:** Game feels complete — animations, sound, content depth, and final polish

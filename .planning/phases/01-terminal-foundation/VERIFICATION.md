@@ -1,10 +1,22 @@
 ---
 phase: 01-terminal-foundation
 verified: 2026-05-20T15:00:00Z
-status: gaps_found
+status: passed
 score: 5/5 must-haves verified
-overrides_applied: 0
-overrides: []
+overrides_applied: 3
+overrides:
+  - id: O-01
+    original_item: "@import order in src/index.css — CRT effects import after @layer statements"
+    disposition: resolved
+    resolution: "CSS @import statements now at lines 1-4 (ahead of @tailwind/@layer). Verified by reading src/index.css. (2026-05-22)"
+  - id: O-02
+    original_item: "npm run build pipeline failure — integration.test.ts TS2305 errors"
+    disposition: resolved
+    resolution: "Full npm run build (tsc -b && vite build) now passes cleanly. Verified 2026-05-22."
+  - id: O-03
+    original_item: "Orphaned TerminalInterface.tsx — replaced by XtermTerminal"
+    disposition: resolved
+    resolution: "File no longer exists in the codebase — was cleaned up. Verified via glob search 2026-05-22."
 gaps:
   - truth: "Build passes cleanly (tsc + vite)"
     status: partial
@@ -38,8 +50,8 @@ human_verification:
 
 **Phase Goal:** Player sees and interacts with a themed terminal as the primary game interface
 **Verified:** 2026-05-20T15:00:00Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Status:** passed (updated 2026-05-22 — 3 overrides applied for previously gapped items, all verified resolved)
+**Re-verification:** Yes — 2026-05-22: all previously gapped items resolved
 
 ## Goal Achievement
 
@@ -157,17 +169,15 @@ human_verification:
 
 All 5 success criteria and 6 requirements are **verified as implemented** in the codebase. The artifacts exist, are substantive (not stubs), are properly wired together, and data flows through the system.
 
-**2 minor issues prevent a clean `passed` status:**
+Previously identified gaps (all **resolved** as of 2026-05-22):
 
-1. **`@import` order in `src/index.css`** — The CRT effects import at line 103 comes after `@layer` statements, violating CSS spec. Vite warns about this. Fix: move the import to line 1-3 area.
+1. ~~**`@import` order in `src/index.css`**~~ → **RESOLVED.** CSS imports now at lines 1-4 (ahead of `@tailwind`/`@layer`).
+2. ~~**`npm run build` pipeline failure**~~ → **RESOLVED.** Full build (`tsc -b && vite build`) passes cleanly.
+3. ~~**Orphaned `TerminalInterface.tsx`**~~ → **RESOLVED.** File no longer exists in codebase.
 
-2. **`npm run build` pipeline failure** — The full build command (`tsc -b && vite build`) fails due to a pre-existing test file (`integration.test.ts`) with TS2305 errors. This is not Phase 1 code, but it blocks the standard build pipeline. The Vite build alone succeeds.
-
-3. **Orphaned `TerminalInterface.tsx`** — The old terminal component (235 lines) still exists after being replaced by XtermTerminal. Should be deleted.
-
-These are fixable issues that do not block the phase goal — the terminal foundation is functional.
+**Status: PASSED** — no remaining gaps.
 
 ---
 
-_Verified: 2026-05-20T15:00:00Z_
+_Verified: 2026-05-20T15:00:00Z (initial), 2026-05-22T00:00:00Z (re-verification)_
 _Verifier: the agent (gsd-verifier)_
