@@ -16,8 +16,8 @@ progress:
 
 ## Current Phase
 
-**Phase:** Phase 5 Complete (All 3 Plans)
-**Status:** Phase 5 complete — ready for Phase 6
+**Phase:** Phase 6 — Content & Polish
+**Status:** Context gathered — ready for planning
 
 ## Project Summary
 
@@ -66,4 +66,4 @@ progress:
 
 ## Next Step
 
-Execute plan 03 (leaderboards) for Phase 5.
+Plan Phase 6 — create plans for sound system, visual effects, content expansion, and performance optimization.
