@@ -76,3 +76,6 @@ None — CSS animations are GPU-composited and browser-sandboxed. Scan command D
 - [x] `npx tsc --noEmit` passes without errors
 
 ## Self-Check: PASSED
+- All 4 files verified present
+- All 4 commit hashes verified in git log
+- Build passes: `npx tsc --noEmit` clean
