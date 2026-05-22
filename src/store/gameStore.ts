@@ -6,6 +6,7 @@ import { idbStorage } from '../lib/idbStorage';
 import { calculateReward, RewardCalculationContext } from '../utils/rewardCalculator';
 import { makeStrategicDecision, type StrategicContext } from '../lib/aiDecisionEngine';
 import { saveToCloud, loadFromCloud, checkSyncConflict } from '../lib/cloudSyncService';
+import AudioManager from '../lib/audioManager';
 
 export interface Player {
   id: string;
@@ -1313,6 +1314,7 @@ export const useGameStore = create<GameState>()(
             ),
           }));
           state.addNotification(`Upgraded ${equipment.name} to level ${equipment.level + 1}`, 'success');
+          AudioManager.getInstance().playUpgradePurchase();
         } else {
           state.addNotification('Insufficient credits for upgrade', 'error');
         }
@@ -1788,6 +1790,7 @@ export const useGameStore = create<GameState>()(
             efficiencyScore: Math.min(successRate * 1.2, 1.0),
           },
         }));
+        AudioManager.getInstance().playAIDecision();
       },
 
       makeAIDecision: () => {

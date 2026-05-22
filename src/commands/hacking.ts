@@ -1,6 +1,7 @@
 import { commandRegistry, CommandContext, CommandCategory } from '../lib/commandRegistry';
 import { Colors } from '../lib/terminalColors';
 import type { Target, Operation } from '../store/gameStore';
+import AudioManager from '../lib/audioManager';
 
 /**
  * Hacking commands: hack, exploit, breach
@@ -79,6 +80,7 @@ async function simulateBreach(ctx: CommandContext, target: Target, operation: Op
 
   // Complete the operation
   ctx.store.completeOperation(operation.id);
+  AudioManager.getInstance().playHackComplete();
 
   ctx.term.writeln('');
   ctx.term.writeln(Colors.bold(Colors.brightGreen('╔══════════════════════════════════════╗')));
@@ -99,6 +101,7 @@ async function simulateBreach(ctx: CommandContext, target: Target, operation: Op
       ctx.store.unlockTarget(nextTarget.id);
       ctx.term.writeln(Colors.bold(Colors.brightCyan(`  [UNLOCKED] New target: ${nextTarget.name}`)));
       ctx.term.writeln('');
+      AudioManager.getInstance().playNewTarget();
     }
   }
 }

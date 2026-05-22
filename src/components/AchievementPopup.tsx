@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
+import AudioManager from '../lib/audioManager';
 
 interface ActiveAchievement {
   id: string;
@@ -15,6 +16,22 @@ export const AchievementPopup: React.FC = () => {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       setActive(detail);
+      AudioManager.getInstance().playAchievementUnlock();
+
+      // Screen flash on terminal
+      const wrapper = document.querySelector('.terminal-wrapper');
+      if (wrapper) {
+        let overlay = wrapper.querySelector('.screen-flash-overlay') as HTMLElement;
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.className = 'screen-flash-overlay';
+          wrapper.appendChild(overlay);
+        }
+        overlay.classList.remove('flash-active');
+        void overlay.offsetWidth;
+        overlay.classList.add('flash-active');
+        setTimeout(() => overlay.classList.remove('flash-active'), 400);
+      }
 
       // Write to terminal via notification system
       addNotification(`🏆 Achievement Unlocked: ${detail.name}!`, 'success');
