@@ -20,6 +20,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
+import AudioManager from '../lib/audioManager';
 
 interface GameSettings {
   audio: {
@@ -243,35 +244,69 @@ export const Settings: React.FC = () => {
         </p>
       </div>
       
-      {/* Audio Settings */}
+      {/* Audio Configuration */}
       <SettingsSection title="Audio Configuration" icon={Volume2}>
         <SettingRow label="Master Audio">
-          <Toggle 
+          <Toggle
             checked={!settings.audio.muted}
-            onChange={(checked) => updateSetting('audio', 'muted', !checked)}
+            onChange={(checked) => {
+              updateSetting('audio', 'muted', !checked);
+              AudioManager.getInstance().setMasterVolume(checked ? settings.audio.masterVolume / 100 : 0);
+            }}
           />
         </SettingRow>
-        
-        <VolumeSlider 
+
+        <VolumeSlider
           label="Master Volume"
           value={settings.audio.masterVolume}
-          onChange={(value) => updateSetting('audio', 'masterVolume', value)}
+          onChange={(value) => {
+            updateSetting('audio', 'masterVolume', value);
+            AudioManager.getInstance().setMasterVolume(value / 100);
+          }}
           muted={settings.audio.muted}
         />
-        
-        <VolumeSlider 
+
+        <VolumeSlider
           label="Sound Effects"
           value={settings.audio.sfxVolume}
-          onChange={(value) => updateSetting('audio', 'sfxVolume', value)}
+          onChange={(value) => {
+            updateSetting('audio', 'sfxVolume', value);
+            AudioManager.getInstance().setSfxVolume(value / 100);
+          }}
           muted={settings.audio.muted}
         />
-        
-        <VolumeSlider 
+
+        <VolumeSlider
           label="Background Music"
           value={settings.audio.musicVolume}
           onChange={(value) => updateSetting('audio', 'musicVolume', value)}
           muted={settings.audio.muted}
         />
+
+        <SettingRow label="Ambient Drone" description="Low background terminal hum">
+          <Toggle
+            checked={AudioManager.getInstance().ambienceEnabled}
+            onChange={(checked) => {
+              AudioManager.getInstance().setAmbienceEnabled(checked);
+              if (checked && !AudioManager.getInstance().isInitialized) {
+                AudioManager.getInstance().init().then(() => {
+                  AudioManager.getInstance().startAmbientDrone();
+                });
+              } else if (!checked) {
+                AudioManager.getInstance().stopAmbientDrone();
+              }
+            }}
+          />
+        </SettingRow>
+
+        <SettingRow label="Terminal Glitch" description="Random glitch effects on terminal">
+          <Toggle
+            checked={true}
+            onChange={(checked) => {
+              updateSetting('display', 'animations', checked);
+            }}
+          />
+        </SettingRow>
       </SettingsSection>
       
       {/* Display Settings */}
