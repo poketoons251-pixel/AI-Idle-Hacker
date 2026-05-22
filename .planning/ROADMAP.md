@@ -97,12 +97,21 @@ Plans:
 **Mode:** mvp
 **Requirements:** (polish across all areas)
 **Success Criteria:**
-1. Terminal has smooth animations and visual effects (glitch, matrix rain)
+1. Terminal has smooth animations and visual effects (glitch, screen flash, scan animation)
 2. Sound effects for key actions (hack complete, upgrade purchased, achievement unlocked)
 3. At least 20 target systems with varied descriptions and rewards
 4. At least 20 upgrades with clear progression paths
 5. Game runs at 60fps with no jank during terminal output
 6. Player session feels satisfying for both 5-minute and 2-hour play sessions
+
+**Plans:** 5 plans in 2 waves
+
+Plans:
+- [ ] 06-01-PLAN.md — Content expansion: 15 new targets (4 tiers) + 9 new upgrades
+- [ ] 06-02-PLAN.md — Visual effects: glitch CSS, screen flash, scan animation
+- [ ] 06-03-PLAN.md — Audio system: AudioManager singleton with 7 sounds + ambient drone
+- [ ] 06-04-PLAN.md — Sound integration: wire triggers into hacking/achievement/store + Settings UI
+- [ ] 06-05-PLAN.md — Performance: React.lazy for secondary pages + xterm.js WebGL verification
 
 ---
 
