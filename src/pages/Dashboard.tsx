@@ -15,8 +15,7 @@ import { useGameStore } from '../store/gameStore';
 import { ProgressionPanel } from '../components/progression/ProgressionPanel';
 import NarrativeQuestSystem from '../components/narrative/NarrativeQuestSystem';
 import DynamicQuestGenerator from '../components/quest/QuestGenerator';
-import { IdleOptimizationSystem } from '../components/IdleOptimizationSystem';
-import { Phase3Integration } from '../components/Phase3Integration';
+
 import { TerminalContainer } from '../components/TerminalContainer';
 import { useGameLoop } from '../hooks/useGameLoop';
 import type { Terminal } from '@xterm/xterm';
@@ -342,10 +341,6 @@ export const Dashboard: React.FC = () => {
       <div className="bg-gray-800 rounded-lg p-6">
         <NarrativeQuestSystem />
       </div>
-
-      {/* Phase 3: Enhanced Experience Integration */}
-      <Phase3Integration className="col-span-1 lg:col-span-2" />
-
 
     </div>
   );
