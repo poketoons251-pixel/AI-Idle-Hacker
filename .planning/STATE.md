@@ -3,21 +3,21 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-21T12:35:00Z"
+last_updated: "2026-05-22T00:00:00Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 15
-  percent: 94
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State
 
 ## Current Phase
 
-**Phase:** Phase 5 Plan 02 Complete
-**Status:** Ready to execute plan 03
+**Phase:** Phase 5 Complete (All 3 Plans)
+**Status:** Phase 5 complete — ready for Phase 6
 
 ## Project Summary
 
@@ -46,7 +46,12 @@ progress:
     - src/lib/cloudSyncService.ts: 4 exports (saveToCloud, loadFromCloud, checkSyncConflict, getCloudSaveTimestamp)
     - src/lib/idbStorage.ts: extended with cloud sync hook (try/catch wrapped)
     - src/store/gameStore.ts: syncToCloud, syncFromCloud actions + cloudSync state
-  - Plan 03: Pending
+  - Plan 03: Leaderboard (2026-05-22) ✓
+    - src/lib/leaderboardService.ts: 5 exports (getLeaderboard, submitScore, getPlayerRank, subscribeToLeaderboard, updateLeaderboardEntry)
+    - src/pages/Leaderboards.tsx: wired to real Supabase data with realtime, loading/error/anon states
+    - src/lib/leaderboardService.test.ts: leaderboard service tests
+    - Build: passing ✓
+    - Deployed: https://poketoons251-pixel.github.io/AI-Idle-Hacker/ ✓
 
 ## Memory
 
