@@ -94,6 +94,23 @@ commandRegistry.register({
   usage: 'scan',
   category: 'info' as CommandCategory,
   handler: (_args: string[], ctx: CommandContext) => {
+    // Trigger scan-line animation on terminal wrapper
+    const termEl = ctx.term.element as HTMLElement;
+    const wrapper = termEl?.closest('.terminal-wrapper');
+    if (wrapper) {
+      let scanLine = wrapper.querySelector('.scan-line') as HTMLElement;
+      if (!scanLine) {
+        scanLine = document.createElement('div');
+        scanLine.className = 'scan-line';
+        wrapper.appendChild(scanLine);
+      }
+      scanLine.classList.remove('scanning');
+      // Force reflow to restart CSS animation
+      void scanLine.offsetWidth;
+      scanLine.classList.add('scanning');
+      setTimeout(() => scanLine.classList.remove('scanning'), 1600);
+    }
+
     const { targets } = ctx.store;
     const unlocked = targets.filter((t) => t.unlocked);
 
