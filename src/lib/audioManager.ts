@@ -171,10 +171,85 @@ class AudioManager {
     this._sfxVolume = v;
     if (this.sfxGain) this.sfxGain.gain.value = v;
   }
+
+  // ── Ambient Drone ──
+  startAmbientDrone(): void {
+    if (!this.ensureInit() || !this.ctx || !this.ambienceGain) return;
+    if (this.dronePlaying) return;
+    const ctx = this.ctx;
+    this.droneOsc = ctx.createOscillator();
+    this.droneOsc.type = 'sawtooth';
+    this.droneOsc.frequency.setValueAtTime(60, ctx.currentTime);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(120, ctx.currentTime);
+    filter.Q.setValueAtTime(0.5, ctx.currentTime);
+    this.droneOsc.connect(filter);
+    filter.connect(this.ambienceGain);
+    this.droneOsc.start();
+    this.dronePlaying = true;
+    this.scheduleRandomChirp();
+  }
+
+  private scheduleRandomChirp(): void {
+    if (!this.dronePlaying) return;
+    const delay = 5000 + Math.random() * 10000;
+    this.chirpTimeout = setTimeout(() => {
+      if (!this.dronePlaying || !this.ctx || !this.ambienceGain) return;
+      this.playRandomChirp();
+      this.scheduleRandomChirp();
+    }, delay);
+  }
+
+  private playRandomChirp(): void {
+    if (!this.ctx || !this.ambienceGain) return;
+    const ctx = this.ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    const freq = 800 + Math.random() * 1200;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.connect(gain);
+    gain.connect(this.ambienceGain);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.15);
+  }
+
+  stopAmbientDrone(): void {
+    this.dronePlaying = false;
+    if (this.chirpTimeout) { clearTimeout(this.chirpTimeout); this.chirpTimeout = null; }
+    if (this.droneOsc) { try { this.droneOsc.stop(); } catch {} this.droneOsc = null; }
+  }
+
+  setAmbienceEnabled(enabled: boolean): void {
+    this._ambienceEnabled = enabled;
+    if (this.ambienceGain) this.ambienceGain.gain.value = enabled ? 0.03 : 0;
+  }
   get masterVolume(): number { return this._masterVolume; }
   get sfxVolume(): number { return this._sfxVolume; }
   get ambienceEnabled(): boolean { return this._ambienceEnabled; }
   get isInitialized(): boolean { return this.initialized; }
+
+  static setupLazyInit(): void {
+    const handler = async () => {
+      const instance = AudioManager.getInstance();
+      if (!instance.isInitialized) {
+        await instance.init();
+        instance.startAmbientDrone();
+      }
+      document.removeEventListener('click', handler);
+      document.removeEventListener('keydown', handler);
+    };
+    document.addEventListener('click', handler, { once: true });
+    document.addEventListener('keydown', handler, { once: true });
+  }
 }
 
 export default AudioManager;
+
+// Lazy init on first user interaction (browser autoplay policy)
+AudioManager.setupLazyInit();
