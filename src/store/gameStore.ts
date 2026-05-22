@@ -804,6 +804,17 @@ const initialEquipment: Equipment[] = [
   { id: 'eq-9', name: 'Neural Network', type: 'software', level: 1, bonus: 18, equipped: false, upgradeCost: 5000 },
   { id: 'eq-10', name: 'Exploit Database', type: 'software', level: 1, bonus: 40, equipped: false, upgradeCost: 25000 },
   { id: 'eq-11', name: 'Zero-Day Suite', type: 'software', level: 1, bonus: 100, equipped: false, upgradeCost: 100000 },
+  // New Hardware
+  { id: 'eq-12', name: 'Cooling System', type: 'hardware', level: 1, bonus: 8, equipped: false, upgradeCost: 300 },
+  { id: 'eq-13', name: 'Network Switch', type: 'hardware', level: 1, bonus: 20, equipped: false, upgradeCost: 4000 },
+  { id: 'eq-14', name: 'FPGA Array', type: 'hardware', level: 1, bonus: 50, equipped: false, upgradeCost: 20000 },
+  { id: 'eq-15', name: 'Neural Interface', type: 'hardware', level: 1, bonus: 120, equipped: false, upgradeCost: 100000 },
+  // New Software
+  { id: 'eq-16', name: 'Packet Injector', type: 'software', level: 1, bonus: 5, equipped: false, upgradeCost: 600 },
+  { id: 'eq-17', name: 'Log Cleaner', type: 'software', level: 1, bonus: 14, equipped: false, upgradeCost: 3000 },
+  { id: 'eq-18', name: 'Port Scanner', type: 'software', level: 1, bonus: 30, equipped: false, upgradeCost: 12000 },
+  { id: 'eq-19', name: 'AI Training Model', type: 'software', level: 1, bonus: 70, equipped: false, upgradeCost: 50000 },
+  { id: 'eq-20', name: 'Backdoor Installer', type: 'software', level: 1, bonus: 180, equipped: false, upgradeCost: 200000 },
 ];
 
 const initialAchievements: Achievement[] = [
