@@ -107,7 +107,7 @@ Plans:
 **Plans:** 5 plans in 2 waves
 
 Plans:
-- [ ] 06-01-PLAN.md — Content expansion: 15 new targets (4 tiers) + 9 new upgrades
+- [x] 06-01-PLAN.md — Content expansion: 15 new targets (4 tiers) + 9 new upgrades
 - [x] 06-02-PLAN.md — Visual effects: glitch CSS, screen flash, scan animation
 - [x] 06-03-PLAN.md — Audio system: AudioManager singleton with 7 sounds + ambient drone
 - [ ] 06-04-PLAN.md — Sound integration: wire triggers into hacking/achievement/store + Settings UI
