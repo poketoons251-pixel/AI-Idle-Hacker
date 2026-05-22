@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import AudioManager from "./lib/audioManager";
+import { startGlitchTimer } from "./lib/glitchTrigger";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -14,3 +15,6 @@ createRoot(document.getElementById("root")!).render(
 document.addEventListener('click', () => {
   AudioManager.getInstance().playUIClick();
 });
+
+// Start random glitch timer
+startGlitchTimer();
