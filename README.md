@@ -1,71 +1,63 @@
-# AI Idle Hacker Game
+# AI Idle Hacker
 
-A modern idle/incremental hacking game built with React, TypeScript, and Vite. Progress through different hacking levels, manage resources, and let AI autoplay optimize your gameplay.
+[![Play](https://img.shields.io/badge/Play-GitHub%20Pages-blue?style=for-the-badge)](https://poketoons251-pixel.github.io/AI-Idle-Hacker/)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## 🎮 Play Now
+An idle/incremental game about AI-assisted hacking. Build skills, hack targets, manage AI companions, and uncover narrative-driven content.
 
-**Live Game**: [https://poketoons251-pixel.github.io/AI-Idle-Hacker/](https://poketoons251-pixel.github.io/AI-Idle-Hacker/)
+## Play Now
 
-## ✨ Features
+**https://poketoons251-pixel.github.io/AI-Idle-Hacker/**
 
-- **Idle Progression**: Automatic resource generation and level advancement
-- **AI Autoplay**: Intelligent automation system that optimizes your gameplay
-- **Resource Management**: Manage money, reputation, and hacking skills
-- **Equipment System**: Upgrade your hacking tools and equipment
-- **Operations**: Execute various hacking operations with different rewards
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Dark/Light Theme**: Toggle between themes for comfortable gameplay
+## Features
 
-## 🚀 Development Setup
+- **Hacking System**: Hack 20+ targets with escalating difficulty using techniques like brute force, SQL injection, social engineering, and zero-day exploits
+- **AI Companions**: Recruit and train AI partners with unique personalities that assist your operations
+- **Skill Progression**: Level up hacking, stealth, social engineering, and hardware skills
+- **Idle Progression**: Resources generate automatically — optimize your setup and come back to rewards
+- **Narrative System**: Story-driven quests, episodic campaigns, and branching choices
+- **Guild System**: Form or join guilds, participate in guild wars
+- **Equipment System**: Acquire and upgrade hacking tools
+- **Save/Export**: Cross-device save export/import with base64 encoding
+- **Dark/Light Theme**: Toggle between themes
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/poketoons251-pixel/AI-Idle-Hacker.git
-   cd AI-Idle-Hacker
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Start development server**:
-   ```bash
-   npm run dev
-   ```
-
-4. **Build for production**:
-   ```bash
-   npm run build
-   ```
-
-5. **Deploy to GitHub Pages**:
-   ```bash
-   npm run deploy
-   ```
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: React 18 + TypeScript
 - **Build Tool**: Vite
+- **State Management**: Zustand (with persist middleware)
+- **Cloud Sync**: Supabase
 - **Styling**: Tailwind CSS
-- **State Management**: Zustand
+- **Testing**: Vitest + Testing Library
+- **Code Quality**: ESLint + TypeScript strict mode
 - **Deployment**: GitHub Pages
-- **Code Quality**: ESLint + TypeScript
 
-## 📱 Game Mechanics
+## Development
 
-- **Idle System**: Resources generate automatically over time
-- **Progression**: Unlock new operations and equipment as you level up
-- **AI Optimization**: Smart automation that adapts to your playstyle
-- **Prestige System**: Reset progress for permanent bonuses
-- **Achievement System**: Complete challenges for rewards
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
+```bash
+npm install
+npm run dev         # Start dev server (client + server)
+npm test            # Run tests
+npm run test:run    # Run tests once
+npm run build       # Production build
+npm run check       # TypeScript check
+npm run deploy      # Deploy to GitHub Pages
 ```
+
+## Project Structure
+
+```
+src/
+├── components/     # React components
+├── config/         # Game balance configuration
+├── lib/            # Utilities (supabase, storage, audio)
+├── pages/          # Page-level components
+├── store/          # Zustand game store
+├── types/          # TypeScript type definitions
+├── utils/          # Game logic (error handling, hacking, AI)
+└── tests/          # Test files
+```
+
+## License
+
+MIT
