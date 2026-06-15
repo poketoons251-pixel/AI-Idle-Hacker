@@ -1,20 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration
+// Uses new-style secret key (sb_secret_xxx) with fallback to legacy service_role key
 const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl) {
   throw new Error('Missing SUPABASE_URL environment variable');
 }
 
-if (!supabaseServiceKey) {
-  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
+if (!supabaseSecretKey) {
+  throw new Error('Missing SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) environment variable');
 }
 
-// Create Supabase client with service role key for server-side operations
-export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+// Create Supabase client with secret key for server-side operations (bypasses RLS)
+export const supabase = createClient(supabaseUrl, supabaseSecretKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false

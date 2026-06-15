@@ -7,10 +7,10 @@ dotenv.config();
 
 const router = Router();
 
-// Initialize Supabase client (you'll need to add your credentials)
+// Initialize Supabase client (uses new secret key with legacy fallback)
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
 // Interface definitions
