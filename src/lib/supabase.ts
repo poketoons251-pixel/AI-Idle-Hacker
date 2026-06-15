@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration for frontend
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://fudyahypzgleezrtdnai.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZHlhaHlwemdsZWV6cnRkbmFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY2OTM0ODgsImV4cCI6MjA3MjI2OTQ4OH0.XOThtbknHcoE9oQKVj4mlO2-AKQVAjlEAo5l428dymI';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl) {
   throw new Error('Missing VITE_SUPABASE_URL environment variable');

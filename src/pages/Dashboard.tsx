@@ -327,7 +327,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
       
-      {/* Enhanced Narrative Quest System */}
+      {/* Narrative Quest System */}
       <div className="bg-gray-800 rounded-lg p-6">
         <NarrativeQuestSystem />
       </div>
@@ -335,11 +335,6 @@ export const Dashboard: React.FC = () => {
       {/* Dynamic Quest Generator */}
       <div className="bg-gray-800 rounded-lg p-6">
         <DynamicQuestGenerator />
-      </div>
-
-      {/* Enhanced Quest System with Twists & Memorable Elements */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <NarrativeQuestSystem />
       </div>
 
     </div>

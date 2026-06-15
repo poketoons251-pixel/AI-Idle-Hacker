@@ -1,5 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useGameStore } from '../store/gameStore';
+
+function encodeBase64(str: string): string {
+  return typeof Buffer !== 'undefined'
+    ? Buffer.from(str).toString('base64')
+    : btoa(str);
+}
 
 describe('Save export/import/reset', () => {
   beforeEach(() => {
@@ -56,7 +62,7 @@ describe('Save export/import/reset', () => {
       operations: [],
       lastUpdate: Date.now(),
     };
-    const encoded = btoa(JSON.stringify(saveData));
+    const encoded = encodeBase64(JSON.stringify(saveData));
 
     const result = useGameStore.getState().importSave(encoded);
     expect(result.success).toBe(true);
@@ -78,7 +84,7 @@ describe('Save export/import/reset', () => {
 
   // Test 5: importSave(atob("invalid-json")) returns { success: false, error: "..." }
   it('importSave with valid base64 but invalid JSON returns failure', () => {
-    const encoded = btoa('this is not json');
+    const encoded = encodeBase64('this is not json');
     const result = useGameStore.getState().importSave(encoded);
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
@@ -87,7 +93,7 @@ describe('Save export/import/reset', () => {
   // Test 6: importSave with missing player field returns { success: false, error: "..." }
   it('importSave with missing required fields returns failure', () => {
     const invalidData = { skills: {}, equipment: [] }; // missing player
-    const encoded = btoa(JSON.stringify(invalidData));
+    const encoded = encodeBase64(JSON.stringify(invalidData));
     const result = useGameStore.getState().importSave(encoded);
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
@@ -135,7 +141,7 @@ describe('Save export/import/reset', () => {
       skills: state.skills,
       equipment: state.equipment,
     };
-    const encoded = btoa(JSON.stringify(invalidData));
+    const encoded = encodeBase64(JSON.stringify(invalidData));
     const result = useGameStore.getState().importSave(encoded);
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();

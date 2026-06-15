@@ -1,5 +1,3 @@
-// @ts-nocheck
-/* eslint-disable semi */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { idbStorage } from '../lib/idbStorage';
@@ -31,6 +29,7 @@ export interface Skills {
   social: number;
   hardware: number;
   ai: number;
+  cryptography?: number;
 }
 
 export interface Equipment {
@@ -89,16 +88,16 @@ export interface Achievement {
 export interface QuestObjective {
   id: string;
   description: string;
-  type: 'operation_complete' | 'credits_earn' | 'level_reach' | 'skill_upgrade' | 'equipment_purchase' | 'target_unlock' | 'achievement_unlock';
+  type: 'operation_complete' | 'credits_earn' | 'level_reach' | 'skill_upgrade' | 'equipment_purchase' | 'target_unlock' | 'achievement_unlock' | 'experience_gain' | 'target_hack' | 'data_extraction';
   target: number;
   current: number;
   isCompleted: boolean;
-  isOptional: boolean;
+  isOptional?: boolean;
 }
 
 export interface QuestReward {
   type: 'credits' | 'experience' | 'equipment' | 'ability' | 'story_unlock' | 'achievement' | 'reputation' | 'skill_points' | 'cosmetic' | 'title' | 'access_unlock';
-  amount: number;
+  amount?: number;
   itemId?: string;
   rarity?: 'common' | 'rare' | 'epic' | 'legendary';
   data?: any; // Additional reward data from database
@@ -128,13 +127,13 @@ export interface Quest {
   title: string;
   description: string;
   type: 'story' | 'daily' | 'weekly' | 'achievement' | 'special';
-  category: 'combat' | 'progression' | 'social' | 'exploration' | 'mastery';
+  category: 'combat' | 'progression' | 'social' | 'exploration' | 'mastery' | 'main';
   difficulty: 1 | 2 | 3 | 4 | 5;
   objectives: QuestObjective[];
   rewards: QuestReward[];
   prerequisites: QuestPrerequisite[];
   timeLimit?: number; // in milliseconds
-  isRepeatable: boolean;
+  isRepeatable?: boolean;
   status: 'locked' | 'available' | 'active' | 'completed' | 'failed';
   startedAt?: number;
   completedAt?: number;
@@ -228,6 +227,8 @@ export interface AIAnalytics {
   efficiencyScore: number;
   activeSince?: number;
   lastDecisionTime?: number;
+  lastSuccessTime?: number;
+  hacksExecuted?: number;
   recentActions: Array<{
     timestamp: number;
     action: string;
@@ -253,7 +254,7 @@ export interface AIDecision {
   techniqueId?: string;
   targetInfo?: string;
   // Operation type for start_operation decisions
-  operationType?: string;
+  operationType?: 'data_breach' | 'crypto_mining' | 'ddos' | 'social_engineering';
 }
 
 // Phase 6: Guild System Interfaces
@@ -270,6 +271,9 @@ export interface Guild {
   reputation: number;
   createdAt: number;
   isPublic: boolean;
+  isRecruiting?: boolean;
+  tags?: string[];
+  achievements?: string[];
   requirements: {
     minLevel: number;
     minReputation: number;
@@ -294,61 +298,62 @@ export interface GuildMember {
 
 export interface GuildWar {
   id: string;
-  attackingGuildId: string;
-  defendingGuildId: string;
+  attackerGuildId: string;
+  defenderGuildId: string;
   status: 'pending' | 'active' | 'completed';
   startTime: number;
   endTime: number;
-  attackingScore: number;
-  defendingScore: number;
+  attackerScore: number;
+  defenderScore: number;
   winner?: string;
-  rewards: {
-    credits: number;
-    experience: number;
-    reputation: number;
-  };
+  prize: number;
 }
 
 // Phase 6: AI Companion System Interfaces
 export interface AICompanion {
   id: string;
   name: string;
-  type: 'hacker' | 'analyst' | 'social' | 'guardian';
+  type: 'hacker' | 'analyst' | 'guardian' | 'infiltrator';
   level: number;
   experience: number;
   skills: {
     hacking: number;
-    analysis: number;
-    social: number;
-    defense: number;
+    analysis?: number;
+    social?: number;
+    defense?: number;
+    stealth?: number;
+    hardware?: number;
+    ai?: number;
   };
   personality: {
     aggression: number;
-    caution: number;
-    creativity: number;
+    curiosity?: number;
     loyalty: number;
+    independence?: number;
+    caution?: number;
+    creativity?: number;
   };
-  abilities: string[];
-  isActive: boolean;
-  lastTraining: number;
-  efficiency: number;
-  mood: 'happy' | 'neutral' | 'tired' | 'excited';
-  customization: {
-    avatar: string;
-    voice: string;
-    theme: string;
-  };
+  status: 'idle' | 'deployed';
+  energy: number;
+  maxEnergy: number;
+  createdAt: number;
+  lastActive: number;
+  upgrades: string[];
+  achievements: string[];
+  currentMission?: string;
 }
 
 export interface CompanionTraining {
   id: string;
   companionId: string;
-  type: 'skill' | 'personality' | 'ability';
-  target: string;
+  type?: 'skill' | 'personality' | 'ability';
+  skill?: string;
+  target?: string;
   duration: number;
   startTime: number;
+  progress?: number;
   cost: number;
-  isCompleted: boolean;
+  isCompleted?: boolean;
 }
 
 // Phase 6: Social System Interfaces
@@ -356,10 +361,11 @@ export interface Friendship {
   id: string;
   playerId: string;
   friendId: string;
-  status: 'pending' | 'accepted' | 'blocked';
+  status: 'pending' | 'active' | 'accepted' | 'blocked';
   createdAt: number;
   lastInteraction: number;
-  trustLevel: number;
+  interactionCount?: number;
+  trustLevel?: number;
 }
 
 export interface Mentorship {
@@ -370,7 +376,9 @@ export interface Mentorship {
   startDate: number;
   endDate?: number;
   progress: number;
-  rewards: {
+  skillFocus?: string;
+  sessionsCompleted?: number;
+  rewards?: {
     mentorCredits: number;
     menteeExperience: number;
   };
@@ -383,7 +391,7 @@ export interface ChatMessage {
   guildId?: string;
   content: string;
   timestamp: number;
-  type: 'direct' | 'guild' | 'system';
+  type: 'direct' | 'guild' | 'system' | 'global';
   isRead: boolean;
 }
 
@@ -403,10 +411,10 @@ export interface CrossPlatformLink {
   id: string;
   playerId: string;
   platform: 'steam' | 'discord' | 'twitch' | 'youtube';
-  platformId: string;
-  isVerified: boolean;
+  accountId: string;
   linkedAt: number;
-  benefits: string[];
+  isActive?: boolean;
+  syncEnabled?: boolean;
 }
 
 export interface GameState {
@@ -460,7 +468,7 @@ export interface GameState {
     message: string;
     type: 'success' | 'error' | 'info' | 'warning';
     timestamp: number;
-    timeoutId?: NodeJS.Timeout;
+    timeoutId?: ReturnType<typeof setTimeout>;
   }>;
   lastUpdate: number;
   
@@ -998,7 +1006,6 @@ const initialQuests: Quest[] = [
         consequences: [
           { type: 'skill', value: 'stealth:1', description: 'Gained stealth experience' }
         ],
-        requirements: [],
       },
       {
         id: 'origin-1-choice-2',
@@ -1008,7 +1015,6 @@ const initialQuests: Quest[] = [
           { type: 'skill', value: 'hacking:1', description: 'Gained hacking experience' },
           { type: 'reputation', value: -5, description: 'Reckless approach noticed' }
         ],
-        requirements: [],
       },
     ],
     nextQuestId: 'origin-2',
@@ -1123,7 +1129,6 @@ const initialQuests: Quest[] = [
         consequences: [
           { type: 'unlock_quest', value: 'corp-2a', description: 'Unlocked alternative path' }
         ],
-        requirements: [],
       },
       {
         id: 'corp-1-choice-2',
@@ -1132,7 +1137,6 @@ const initialQuests: Quest[] = [
         consequences: [
           { type: 'skill', value: 'stealth:2', description: 'Enhanced stealth abilities' }
         ],
-        requirements: [],
       },
     ],
     nextQuestId: 'corp-2',
@@ -1525,15 +1529,14 @@ export const useGameStore = create<GameState>()(
             case 'equipment':
               if (reward.itemId) {
                 // Add equipment to inventory
-                const newEquipment = {
+                const newEquipment: Equipment = {
                   id: `eq-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                   name: reward.data?.name || 'Unknown Equipment',
-                  type: reward.data?.type || 'misc',
-                  rarity: reward.rarity || 'common',
-                  stats: reward.data?.stats || {},
-                  description: reward.description || '',
+                  type: reward.data?.type || 'software',
+                  level: reward.data?.level || 1,
+                  bonus: reward.data?.bonus || 5,
                   equipped: false,
-                  level: reward.data?.level || 1
+                  upgradeCost: reward.data?.upgradeCost || 100,
                 };
                 state.addEquipment(newEquipment);
                 rewardMessages.push(`Equipment: ${newEquipment.name}`);
@@ -1703,7 +1706,7 @@ export const useGameStore = create<GameState>()(
           return;
         }
         
-        const notification = {
+        const notification: GameState['notifications'][number] = {
           id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           message,
           type,
@@ -2164,14 +2167,18 @@ export const useGameStore = create<GameState>()(
           description,
           leaderId: state.player.id,
           memberCount: 1,
+          maxMembers: 50,
           level: 1,
           experience: 0,
           reputation: 0,
           treasury: 0,
           createdAt: Date.now(),
+          isPublic: true,
           isRecruiting: true,
           tags: [],
           achievements: [],
+          requirements: { minLevel: 1, minReputation: 0 },
+          perks: { bonusCredits: 0, bonusExperience: 0, bonusReputation: 0 },
         };
         
         set((state) => ({
@@ -2523,12 +2530,27 @@ export const useGameStore = create<GameState>()(
           exportedAt: new Date().toISOString(),
         };
         const json = JSON.stringify(saveData);
-        return btoa(json);
+        const encoded = new TextEncoder().encode(json);
+        let binary = '';
+        for (const byte of encoded) {
+          binary += String.fromCharCode(byte);
+        }
+        return typeof btoa !== 'undefined' ? btoa(binary) : Buffer.from(binary).toString('base64');
       },
 
       importSave: (base64) => {
         try {
-          const json = atob(base64);
+          let binary: string;
+          if (typeof atob !== 'undefined') {
+            binary = atob(base64);
+          } else {
+            binary = Buffer.from(base64, 'base64').toString('binary');
+          }
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          const json = new TextDecoder().decode(bytes);
           const data = JSON.parse(json);
 
           // Validate required fields
